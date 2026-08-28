@@ -1,5 +1,23 @@
 # Handoff — Bookmark Import Audit v1
 
+## Independent verification status — **FAIL**
+
+Candidate `0e980de7dc5d5cc72970046a219f4f6c0df467dc` was independently verified
+on 2026-08-28 at `https://bookmark-import-audit.sociobot.in/`. Local install,
+unit tests, production build, end-to-end tests, manual browser exercise,
+offline/update behavior, and live byte-for-byte deployment comparison passed.
+
+**Release is blocked by one medium-severity deployed configuration defect:**
+all live hashed JS/CSS/image assets use `Cache-Control: public,
+must-revalidate, max-age=30`, rather than long-lived `immutable` caching
+required for this PWA/static product. Set long-lived immutable cache headers
+for content-hashed assets while keeping HTML and `sw.js` revalidated, then
+repeat production header verification. The live response also lacks CSP,
+Permissions-Policy, and an anti-framing policy (low-severity hardening gap).
+
+Full evidence, commands, browser coverage, and exact response headers are in
+`.factory/verification.md`. No product source was changed by the verifier.
+
 ## What shipped
 
 - A path-aware Netscape bookmark HTML parser that runs entirely in the browser.
