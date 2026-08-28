@@ -15,12 +15,16 @@ async function filesBelow(root: string, dir = root): Promise<string[]> {
   });
 }
 
+export function isPrecacheAsset(file: string): boolean {
+  return file !== '/sw.js' && file !== '/staticwebapp.config.json';
+}
+
 function serviceWorker(): Plugin {
   return {
     name: 'versioned-service-worker',
     apply: 'build',
     async closeBundle() {
-      const files = (await filesBelow('dist')).filter((file) => file !== '/sw.js');
+      const files = (await filesBelow('dist')).filter(isPrecacheAsset);
       const template = await readFile('src/sw-template.js', 'utf8');
       const version = createHash('sha256').update(files.join('|')).digest('hex').slice(0, 10);
       await writeFile('dist/sw.js', template

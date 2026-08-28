@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { isPrecacheAsset } from '../../vite.config';
 
 type StaticWebAppConfig = {
   navigationFallback: { rewrite: string; exclude: string[] };
@@ -28,6 +29,13 @@ describe('Azure Static Web Apps delivery policy', () => {
     expect(headersByRoute.get('/icons/*')?.['Cache-Control']).toBe(immutable);
     expect(config.navigationFallback).toMatchObject({ rewrite: '/index.html' });
     expect(config.navigationFallback.exclude).toEqual(expect.arrayContaining(['/assets/*', '/icons/*']));
+  });
+
+  it('never precaches Azure deployment metadata that the host intentionally does not serve', () => {
+    expect(isPrecacheAsset('/staticwebapp.config.json')).toBe(false);
+    expect(isPrecacheAsset('/sw.js')).toBe(false);
+    expect(isPrecacheAsset('/offline.html')).toBe(true);
+    expect(isPrecacheAsset('/assets/index-example.js')).toBe(true);
   });
 
   it('ships a restrictive same-origin response policy for local bookmark data', async () => {
