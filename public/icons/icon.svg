@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title id="title">Bookmark Import Audit branching path icon</title>
+  <rect width="512" height="512" rx="72" fill="#172b33"/>
+  <path d="M92 256h120m0 0 82-106m-82 106 82 106m0-212h126M294 362h126" fill="none" stroke="#f4ebd5" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="92" cy="256" r="31" fill="#d45532" stroke="#f4ebd5" stroke-width="12"/>
+  <path d="M387 117h66v66l-33-20-33 20zM387 329h66v66l-33-20-33 20z" fill="#14756e" stroke="#f4ebd5" stroke-width="10" stroke-linejoin="round"/>
+</svg>
