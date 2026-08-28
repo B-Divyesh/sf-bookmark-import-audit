@@ -1,19 +1,22 @@
 import type { AuditDocument } from './types';
 
-const DB_NAME = 'bookmark-import-audit';
 const STORE = 'state';
+export type StorageScope = 'real' | 'demo';
 
-function database(): Promise<IDBDatabase> {
+function database(scope: StorageScope): Promise<IDBDatabase> {
+  // Demo never opens the ordinary database. This is deliberate isolation, not
+  // merely a different record key inside shared user data.
+  const name = scope === 'demo' ? 'demo:bookmark-import-audit' : 'bookmark-import-audit';
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, 1);
+    const request = indexedDB.open(name, 1);
     request.onupgradeneeded = () => request.result.createObjectStore(STORE);
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
   });
 }
 
-async function transact<T>(mode: IDBTransactionMode, action: (store: IDBObjectStore) => IDBRequest<T>): Promise<T> {
-  const db = await database();
+async function transact<T>(scope: StorageScope, mode: IDBTransactionMode, action: (store: IDBObjectStore) => IDBRequest<T>): Promise<T> {
+  const db = await database(scope);
   return new Promise((resolve, reject) => {
     const transaction = db.transaction(STORE, mode);
     const request = action(transaction.objectStore(STORE));
@@ -23,30 +26,14 @@ async function transact<T>(mode: IDBTransactionMode, action: (store: IDBObjectSt
   });
 }
 
-export async function saveAudit(audit: AuditDocument): Promise<void> {
-  await transact('readwrite', (store) => store.put(audit, 'latest'));
+export async function saveAudit(audit: AuditDocument, scope: StorageScope): Promise<void> {
+  await transact(scope, 'readwrite', (store) => store.put(audit, 'latest'));
 }
 
-export async function loadAudit(): Promise<AuditDocument | undefined> {
-  return transact('readonly', (store) => store.get('latest'));
+export async function loadAudit(scope: StorageScope): Promise<AuditDocument | undefined> {
+  return transact(scope, 'readonly', (store) => store.get('latest'));
 }
 
-export async function forgetAudit(): Promise<void> {
-  await transact('readwrite', (store) => store.delete('latest'));
-}
-
-export interface Worksheet {
-  destination: string;
-  notes: string;
-  backupConfirmed: boolean;
-  dryRunConfirmed: boolean;
-  spotCheckConfirmed: boolean;
-}
-
-export async function saveWorksheet(worksheet: Worksheet): Promise<void> {
-  await transact('readwrite', (store) => store.put(worksheet, 'worksheet'));
-}
-
-export async function loadWorksheet(): Promise<Worksheet | undefined> {
-  return transact('readonly', (store) => store.get('worksheet'));
+export async function forgetAudit(scope: StorageScope): Promise<void> {
+  await transact(scope, 'readwrite', (store) => store.delete('latest'));
 }

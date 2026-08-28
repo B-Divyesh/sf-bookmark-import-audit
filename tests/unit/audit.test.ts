@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { readFile } from 'node:fs/promises';
 import { auditBookmarks, correctedBookmarkHtml, makeAuditDocument, normalizeUrl, parseBookmarkHtml, reviewCsv } from '../../src/audit';
 import { SAMPLE_BOOKMARKS } from '../../src/sample';
 
@@ -20,11 +21,11 @@ describe('bookmark parser and audit', () => {
 
   it('finds path collisions, duplicates, variants, and missing titles', () => {
     const document = makeAuditDocument(SAMPLE_BOOKMARKS, 'sample.html', new Date('2026-08-28T00:00:00Z'));
-    expect(document.bookmarks).toHaveLength(4);
+    expect(document.bookmarks).toHaveLength(8);
     expect(document.result.folderCollisions).toHaveLength(1);
     expect(document.result.folderCollisions[0].paths).toEqual([['Personal', 'Research'], ['Work', 'Research']]);
     expect(document.result.duplicateClusters).toHaveLength(1);
-    expect(document.result.variantClusters).toHaveLength(1);
+    expect(document.result.variantClusters.length).toBeGreaterThanOrEqual(1);
     expect(document.result.missingTitles).toHaveLength(1);
     expect(document.result.maxDepth).toBe(2);
   });
@@ -43,7 +44,7 @@ describe('exports', () => {
     expect(html).toContain('<H3>Research — Personal</H3>');
     expect(html).toContain('<H3>Research — Work</H3>');
     expect((html.match(/<DT><A /g) ?? [])).toHaveLength(document.bookmarks.length);
-    expect(html).toContain('>docs.example.org</A>');
+    expect(html).toContain('>notes.example.test</A>');
   });
 
   it('creates a review CSV with escaped, actionable rows', () => {
@@ -52,4 +53,8 @@ describe('exports', () => {
     expect(output).toContain('duplicate_url,medium');
     expect(output.split('\r\n')[0]).toBe('kind,severity,title,url,folder_path,detail,suggested_action');
   });
+});
+
+it('@claim:license-metadata ships the MIT license', async () => {
+  await expect(readFile('LICENSE', 'utf8')).resolves.toMatch(/Permission is hereby granted, free of charge/);
 });

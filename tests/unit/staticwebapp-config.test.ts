@@ -7,6 +7,7 @@ type StaticWebAppConfig = {
   navigationFallback: { rewrite: string; exclude: string[] };
   globalHeaders: Record<string, string>;
   routes: Array<{ route: string; headers: Record<string, string> }>;
+  responseOverrides?: Record<string, { rewrite: string }>;
 };
 
 const configPath = resolve(process.cwd(), 'public/staticwebapp.config.json');
@@ -18,7 +19,7 @@ async function readConfig(): Promise<StaticWebAppConfig> {
 }
 
 describe('Azure Static Web Apps delivery policy', () => {
-  it('keeps documents and the service worker revalidated while making static assets immutable', async () => {
+  it('@claim:delivery-config keeps documents and the service worker revalidated while making static assets immutable', async () => {
     const config = await readConfig();
     const headersByRoute = new Map(config.routes.map((route) => [route.route, route.headers]));
 
@@ -29,6 +30,7 @@ describe('Azure Static Web Apps delivery policy', () => {
     expect(headersByRoute.get('/icons/*')?.['Cache-Control']).toBe(immutable);
     expect(config.navigationFallback).toMatchObject({ rewrite: '/index.html' });
     expect(config.navigationFallback.exclude).toEqual(expect.arrayContaining(['/assets/*', '/icons/*']));
+    expect(config.responseOverrides?.['404']).toEqual({ rewrite: '/404.html' });
   });
 
   it('never precaches Azure deployment metadata that the host intentionally does not serve', () => {
@@ -42,7 +44,7 @@ describe('Azure Static Web Apps delivery policy', () => {
     const { globalHeaders } = await readConfig();
 
     expect(globalHeaders['Content-Security-Policy']).toContain("default-src 'self'");
-    expect(globalHeaders['Content-Security-Policy']).toContain("connect-src 'self' https://api.sociobot.in");
+    expect(globalHeaders['Content-Security-Policy']).toContain("connect-src 'self'");
     expect(globalHeaders['Content-Security-Policy']).toContain("frame-ancestors 'none'");
     expect(globalHeaders['Permissions-Policy']).toContain('camera=()');
     expect(globalHeaders['X-Frame-Options']).toBe('DENY');

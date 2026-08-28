@@ -1,45 +1,118 @@
 import { expect, test } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
-test('audits the sample and exports both review files', async ({ page }) => {
+async function auditDemo(page: import('@playwright/test').Page): Promise<void> {
+  await page.goto('/demo');
+  await expect(page.getByText('Demo — sample data, nothing is saved')).toBeVisible();
+  await expect(page.getByRole('heading', { name: /issues found/i })).toBeVisible();
+}
+
+test('@claim:demo-isolation keeps a real saved audit separate from resettable demo data', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText(/Inspect before/);
-  await page.getByRole('button', { name: 'Try a small example' }).click();
-  await expect(page.getByRole('heading', { name: /review items found/i })).toBeVisible();
-  await expect(page.getByText('Research — Personal')).toBeVisible();
+  await page.evaluate(async () => new Promise<void>((resolve, reject) => {
+    const request = indexedDB.open('bookmark-import-audit', 1);
+    request.onupgradeneeded = () => request.result.createObjectStore('state');
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => { const transaction = request.result.transaction('state', 'readwrite'); transaction.objectStore('state').put({ fileName: 'private-bookmarks.html', bookmarks: [], folders: [], result: { folderCollisions: [], duplicateClusters: [], variantClusters: [], missingTitles: [], invalidUrls: [], maxDepth: 0 }, createdAt: new Date().toISOString(), version: 1 }, 'latest'); transaction.oncomplete = () => resolve(); };
+  }));
+  await page.goto('/?demo=1');
+  await expect(page).toHaveTitle('Demo — Bookmark Import Audit');
+  await expect(page.getByText('Demo — sample data, nothing is saved')).toBeVisible();
+  await page.getByRole('button', { name: 'Reset demo' }).click();
+  await expect(page.getByText('sample-bookmark-library.html')).toBeVisible();
+  await page.getByRole('link', { name: 'Start for real' }).click();
+  await expect(page.getByText('private-bookmarks.html')).toBeVisible();
+});
 
-  const htmlDownload = page.waitForEvent('download');
-  await page.getByRole('button', { name: 'Export corrected HTML' }).click();
-  expect((await htmlDownload).suggestedFilename()).toBe('example-bookmarks-collision-safe.html');
+test('@claim:audit-categories finds each advertised issue category in the shipped sample', async ({ page }) => {
+  await auditDemo(page);
+  await expect(page.getByRole('heading', { name: 'Folders that may merge' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Duplicate links' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Likely URL variants' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Missing titles and malformed URLs' })).toBeVisible();
+});
 
-  const csvDownload = page.waitForEvent('download');
+test('@claim:csv-export downloads an actionable CSV', async ({ page }) => {
+  await auditDemo(page);
+  const download = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Export review CSV' }).click();
-  expect((await csvDownload).suggestedFilename()).toBe('example-bookmarks-review.csv');
+  const text = await (await download).createReadStream().then(async (stream) => { let output = ''; for await (const chunk of stream!) output += chunk; return output; });
+  expect(text.split('\r\n')[0]).toBe('kind,severity,title,url,folder_path,detail,suggested_action');
+  expect(text.split('\r\n').filter(Boolean).length).toBeGreaterThan(6);
 });
 
-test('has no serious accessibility violations', async ({ page }) => {
-  await page.goto('/');
-  const results = await new AxeBuilder({ page: page as never }).analyze();
-  expect(results.violations.filter((violation) => ['serious', 'critical'].includes(violation.impact ?? ''))).toEqual([]);
-  await page.goto('/privacy');
-  await expect(page.locator('main')).toHaveCount(1);
-  await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1);
+test('@claim:corrected-export preserves every input URL and full folder paths', async ({ page }) => {
+  await auditDemo(page);
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export corrected HTML' }).click();
+  const text = await (await download).createReadStream().then(async (stream) => { let output = ''; for await (const chunk of stream!) output += chunk; return output; });
+  expect(text).toContain('https://reading.example.test/guide?utm_source=weekly#intro');
+  expect(text).toContain('<H3>Research — Personal</H3>');
+  expect(text).toContain('<H3>Research — Work</H3>');
+  expect((text.match(/<DT><A /g) ?? []).length).toBe(8);
 });
 
-test('keeps the license restore submit control explicitly named', async ({ page }) => {
-  await page.goto('/');
-  await page.getByText('Have a license? Restore it', { exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Verify license' })).toBeVisible();
+test('@claim:local-processing never requests sample bookmark URLs or a third-party host', async ({ page }) => {
+  const requests: string[] = [];
+  page.on('request', (request) => requests.push(request.url()));
+  await auditDemo(page);
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export corrected HTML' }).click();
+  await download;
+  expect(requests.every((url) => new URL(url).origin === 'http://127.0.0.1:4173')).toBe(true);
+  expect(requests.join('\n')).not.toMatch(/reading\.example\.test|docs\.example\.test|redirect\.example\.test/);
+  expect(await page.context().cookies()).toEqual([]);
+  expect(await page.locator('script[src]').evaluateAll((scripts) => scripts.every((script) => new URL((script as HTMLScriptElement).src).origin === location.origin))).toBe(true);
 });
 
-test('reloads and audits while offline after first visit', async ({ page, context }) => {
-  await page.goto('/');
+test('@claim:offline-reload reloads the demo and exports while offline after first visit', async ({ page, context }) => {
+  await auditDemo(page);
   await page.evaluate(() => navigator.serviceWorker.ready);
   await page.reload();
   await context.setOffline(true);
   await page.reload();
-  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
-  await expect(page.getByText('Offline mode: the audit still works.')).toBeVisible();
-  await page.getByRole('button', { name: 'Try a small example' }).click();
-  await expect(page.getByRole('heading', { name: /review items found/i })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /issues found/i })).toBeVisible();
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export review CSV' }).click();
+  await expect(await download).toBeTruthy();
+});
+
+test('@claim:file-size-limit accepts 25 MiB and rejects a file one byte larger', async ({ page }) => {
+  await page.goto('/');
+  const boundary = Buffer.alloc(25 * 1024 * 1024, 32);
+  boundary.write('<!DOCTYPE NETSCAPE-Bookmark-file-1><DL><p><DT><A HREF="https://size.example.test">Sized</A>');
+  await page.locator('#bookmark-file').setInputFiles({ name: '25m.html', mimeType: 'text/html', buffer: boundary });
+  await expect(page.getByRole('heading', { name: /issues found/i })).toBeVisible();
+  await page.goto('/');
+  await page.locator('#bookmark-file').setInputFiles({ name: 'too-large.html', mimeType: 'text/html', buffer: Buffer.alloc(25 * 1024 * 1024 + 1, 32) });
+  await expect(page.getByText('That file is over 25 MB.')).toBeVisible();
+});
+
+test('@claim:real-audit-storage survives a refresh and can be forgotten', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('#bookmark-file').setInputFiles({ name: 'saved.html', mimeType: 'text/html', buffer: Buffer.from('<!DOCTYPE NETSCAPE-Bookmark-file-1><DL><p><DT><A HREF="https://saved.example.test">Saved</A></DL>') });
+  await expect(page.getByText('saved.html')).toBeVisible();
+  await page.reload();
+  await expect(page.getByText('saved.html')).toBeVisible();
+  await page.getByRole('button', { name: 'Forget this audit' }).click();
+  await expect(page.getByText('Four local checks')).toBeVisible();
+});
+
+test('routes, titles, focus announcements, 404 artifact, and mobile first screen work', async ({ page }) => {
+  await page.goto('/privacy');
+  await expect(page).toHaveTitle('Privacy — Bookmark Import Audit');
+  await page.getByRole('link', { name: 'Terms' }).click();
+  await expect(page).toHaveTitle('Terms — Bookmark Import Audit');
+  await expect(page.locator('h1')).toBeFocused();
+  await page.goBack();
+  await expect(page).toHaveTitle('Privacy — Bookmark Import Audit');
+  expect((await page.request.get('/404.html')).status()).toBe(200);
+  await page.goto('/demo');
+  await expect(page.getByRole('link', { name: 'Try it with sample data' }).first()).toBeVisible();
+});
+
+test('has no serious or critical accessibility violations', async ({ page }) => {
+  await page.goto('/demo');
+  const results = await new AxeBuilder({ page: page as never }).analyze();
+  expect(results.violations.filter((item) => ['serious', 'critical'].includes(item.impact ?? ''))).toEqual([]);
 });

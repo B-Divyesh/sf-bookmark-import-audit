@@ -107,3 +107,9 @@ then exported as WebP (and PNG fallback) within the 300 KB hero budget. Hand-mad
 SVG app icons use the same input-tree/output-tray motif and are MIT-licensed with
 the repository.
 
+### Social preview
+
+`public/assets/social-preview.jpg` is a 1200 × 630 crop composed from the
+reviewed `migration-console` original on 2026-08-28. It contains no added text,
+brands, or third-party material and is used only for Open Graph and Twitter
+previews.
