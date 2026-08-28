@@ -60,9 +60,12 @@ serious/critical accessibility checks.
 ## Deployment
 
 Deploy the contents of `dist/` as a static SPA with HTTPS and route fallback to
-`index.html` (so `/privacy` and `/terms` resolve directly). Infrastructure, DNS,
-billing product registration, and provider configuration are handled outside
-this repository by the factory.
+`index.html` (so `/privacy` and `/terms` resolve directly). The build includes
+`staticwebapp.config.json` for Azure Static Web Apps: HTML, the manifest, and
+`sw.js` are revalidated while immutable assets are cached for one year. It also
+sets the product's CSP, permissions, and anti-framing response policies.
+Infrastructure, DNS, and billing product registration are handled outside this
+repository by the factory.
 
 ## License
 
