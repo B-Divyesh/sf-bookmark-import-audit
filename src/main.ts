@@ -96,7 +96,7 @@ function plusMarkup(): string {
   }
   return `<section class="plus-panel" aria-labelledby="plus-title"><div><p class="eyebrow">Optional one-time unlock</p><h2 id="plus-title">Carry a signed-off migration plan.</h2><p>Plus adds a locally saved destination worksheet, verification checklist, and migration notes. The full audit, corrected HTML, CSV, accessibility, and safety guidance stay free.</p></div>
     <div class="price"><span>$9</span><small>one time</small><a class="button primary" href="${checkoutUrl()}">Buy Plus</a></div>
-    <details><summary>Have a license? Restore it</summary><form id="license-form"><label for="license-token">License token</label><div class="inline-field"><input id="license-token" name="license" required autocomplete="off" spellcheck="false"><button class="button secondary" type="submit">Verify license</button></div><p class="form-status" id="license-status" role="status">${escapeHtml(license.notice ?? (license.verifying ? 'Checking license…' : ''))}</p></form></details>
+    <details><summary>Have a license? Restore it</summary><form id="license-form"><label for="license-token">License token</label><div class="inline-field"><input id="license-token" name="license" required autocomplete="off" spellcheck="false"><button class="button secondary" type="submit" aria-label="Verify license">Verify license</button></div><p class="form-status" id="license-status" role="status">${escapeHtml(license.notice ?? (license.verifying ? 'Checking license…' : ''))}</p></form></details>
     <p class="fine-print">Checkout is hosted by Sociobot/Dodo, the merchant of record. Refunds are handled there and revoke the license. See <a href="/privacy">privacy</a> and <a href="/terms">terms</a>.</p>
   </section>`;
 }

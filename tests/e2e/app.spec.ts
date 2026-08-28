@@ -26,6 +26,12 @@ test('has no serious accessibility violations', async ({ page }) => {
   await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1);
 });
 
+test('keeps the license restore submit control explicitly named', async ({ page }) => {
+  await page.goto('/');
+  await page.getByText('Have a license? Restore it', { exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Verify license' })).toBeVisible();
+});
+
 test('reloads and audits while offline after first visit', async ({ page, context }) => {
   await page.goto('/');
   await page.evaluate(() => navigator.serviceWorker.ready);
