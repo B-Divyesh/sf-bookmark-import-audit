@@ -1,44 +1,71 @@
-# Handoff — adversarial review 1
+# Handoff — polish 1
 
 ## Outcome
 
-Completed an independent adversarial first-read review of the live Bookmark Import Audit at desktop and 390 px widths. The verdict is **FAIL**. No product code was changed.
+Repair commit: `2cb45ffea83d2d53d1fa59df1ab9944b39859b52` on `main`, pushed to
+`origin/main` from this work order. It closes review findings F-1-1 through
+F-1-49; the detailed finding-to-change evidence is in `.factory/polish-1.md`.
 
-The full report is `.factory/review-1.md`. Primary blockers are:
+The release keeps the mid-century migration-console visual identity. It now has
+a first-screen direct demo action, isolated `/demo` and `?demo=1` paths, route
+metadata and navigation focus handling, product-specific 404 page, real export
+and privacy claims, and a 390px-tested layout. Unsupported paid checkout and
+license promises were removed because their registered checkout endpoint was
+not live.
 
-- the first-screen action is metaphorical and the sample action is below the fold;
-- `/demo` is not a sandbox, and sample use overwrites the ordinary saved audit;
-- `.factory/claims.json` and tagged claim tests are absent despite many live/README promises;
-- the live **Buy Plus** URL returns HTTP 404;
-- unknown routes return the home page with HTTP 200 instead of a designed 404.
+## Verification
 
-## Verification performed
-
-From a fresh clone of commit `544ee4e0c7ef03608fca82a47a1c9a26af391111`:
+Ran from a clean `npm ci` dependency install:
 
 ```text
-npm ci             PASS — 142 packages, 0 vulnerabilities
-npm test           PASS — 10/10
-npm run lint       PASS
-npm run typecheck  PASS
-npm run build      PASS
-npm run test:e2e   PASS — 8/8
+npm test                                      PASS — 11 tests
+npm run lint                                  PASS
+npm run typecheck                             PASS
+npm run build                                 PASS — dist/index.html
+npm run test:e2e                              PASS — 20 tests (desktop + 390px)
+npm test -- -t @claim:delivery-config         PASS
+npm test -- -t @claim:license-metadata        PASS
+all eight Playwright claim commands           PASS — 2 projects each
 ```
 
-Live checks used fresh Playwright contexts at 390 × 844 and 1440 × 900. Evidence confirmed:
+The eight browser claim commands were run exactly as listed in
+`.factory/claims.json`: demo isolation, audit categories, CSV export, corrected
+export, local processing, offline reload, 25 MiB file boundary, and real-audit
+storage. `@claim:file-size-limit` was rerun after making the accepted fixture
+exactly 25 MiB; it passed in both projects.
 
-- sample results appear immediately after the click;
-- sample state is written to `bookmark-import-audit/state` and replaces an existing real audit;
-- the offline reload/sample flow works and makes only same-origin requests;
-- axe reports zero serious/critical findings at both widths;
-- previous cache, security-header, service-worker, and accessible license-button repairs remain fixed;
-- the checkout endpoint returns 404, while `/404` and arbitrary missing paths return the home page as 200.
+Accessibility/privacy smoke evidence on the local production build at `/demo`:
 
-## Files changed
+```json
+{"title":"Demo — Bookmark Import Audit","lang":"en","mains":1,"h1s":1,"imagesWithoutAlt":0,"consoleErrors":[]}
+```
 
-- `.factory/review-1.md` — full verdict, findings, copy audit, claim inventory, evidence, history, and required fixes.
-- `.factory/handoff.md` — this review handoff.
+The Playwright axe integration found zero serious or critical violations. The
+offline claim reloads `/demo` after service-worker readiness with the browser
+offline and exports CSV. The privacy claim records every request, checks the
+sample bookmark trap domains are absent, and verifies no cookies or external
+scripts. Screenshots: `/tmp/bookmark-home-desktop.png` and
+`/tmp/bookmark-demo-mobile.png`.
 
-## Remaining work
+Build budgets: initial JavaScript is 24.78 kB (8.89 kB gzip), and CSS is
+18.82 kB (5.23 kB gzip). The generated social preview is 110,778 bytes.
 
-All findings F-1-1 through F-1-49 in the review remain for the product owner/repair worker. Re-run the entire checklist from a fresh context after repair; do not accept a diff-only verification.
+## Deployment status
+
+`git push origin main` completed successfully. At 2026-08-28 23:53 UTC the
+configured live URL still returned the old candidate title and `/404` returned
+HTTP 200, so the factory static deployment had not propagated the pushed commit
+yet. This repository contains no work-order deployment command or deployment
+credential, and repository rules prohibit infrastructure changes. The next
+factory deployment should publish commit `2cb45ff`; recheck `/`, `/demo`,
+`/privacy`, `/terms`, and a missing URL cold after propagation.
+
+## Run locally
+
+```sh
+npm ci
+npm run build
+npm run preview
+```
+
+Open `http://127.0.0.1:4173/demo` for the isolated sample audit.
