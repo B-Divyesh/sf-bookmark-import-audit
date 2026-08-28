@@ -51,7 +51,7 @@ Verification on 2026-08-28:
   and 390/390 during visual smoke tests.
 - Lighthouse mobile: Performance 100, Accessibility 100, Best Practices 100,
   SEO 100; LCP 1.5 s, FCP 0.9 s, TBT 0 ms, CLS 0.
-- Production payload: 29.39 KB JavaScript and 17.52 KB CSS uncompressed; responsive
+- Production payload: 29.39 KB JavaScript and 17.61 KB CSS uncompressed; responsive
   hero WebPs are 24 KB and 56 KB (fallback JPEG 128 KB).
 - Dependency audit: npm reported 0 vulnerabilities.
 
