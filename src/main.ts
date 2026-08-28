@@ -15,7 +15,7 @@ const escapeHtml = (value: string | number) => String(value)
 
 function header(active: 'audit' | 'privacy' | 'terms' = 'audit'): string {
   return `<header class="site-header">
-    <a class="brand" href="/" aria-label="Bookmark Import Audit home"><span class="brand-mark" aria-hidden="true">BIA</span><span>Field instrument <b>01</b></span></a>
+    <a class="brand" href="/" aria-label="BIA — Bookmark Import Audit home"><span class="brand-mark" aria-hidden="true">BIA</span><span>Field instrument <b>01</b></span></a>
     <nav aria-label="Site"><a ${active === 'audit' ? 'aria-current="page"' : ''} href="/">Audit</a><a ${active === 'privacy' ? 'aria-current="page"' : ''} href="/privacy">Privacy</a><a ${active === 'terms' ? 'aria-current="page"' : ''} href="/terms">Terms</a></nav>
   </header>`;
 }
@@ -166,7 +166,14 @@ function wireHome(): void {
   ['dragleave', 'drop'].forEach((type) => drop?.addEventListener(type, (event) => { event.preventDefault(); drop.classList.remove('dragging'); }));
   drop?.addEventListener('drop', async (event) => {
     const file = event.dataTransfer?.files[0];
-    if (file) await processHtml(await file.text(), file.name);
+    if (!file) return;
+    if (file.size > 25 * 1024 * 1024) {
+      const status = document.querySelector<HTMLDivElement>('#audit-status')!;
+      status.className = 'audit-status error';
+      status.textContent = 'That file is over 25 MB. Export a smaller library or split it before auditing.';
+      return;
+    }
+    await processHtml(await file.text(), file.name);
   });
   document.querySelector('#export-html')?.addEventListener('click', () => audit && download(`${audit.fileName.replace(/\.[^.]+$/, '')}-collision-safe.html`, 'text/html;charset=utf-8', correctedBookmarkHtml(audit)));
   document.querySelector('#export-csv')?.addEventListener('click', () => audit && download(`${audit.fileName.replace(/\.[^.]+$/, '')}-review.csv`, 'text/csv;charset=utf-8', reviewCsv(audit)));

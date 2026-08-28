@@ -1,0 +1,11 @@
+{
+  "slug": "bookmark-import-audit",
+  "title": "Bookmark Import Audit",
+  "territory": "utilities",
+  "user": "People moving a years-old browser bookmark library who need to preserve its nested meaning and find destructive import problems before committing to a new manager.",
+  "smallest_useful_product": "A fully local web app that reads Netscape bookmark HTML, builds a path-aware inventory, flags lossy-import hazards and duplicate/redirect clusters, and exports a corrected HTML plus a review CSV.",
+  "artifact_class": "pwa-offline",
+  "monetization": "one-time",
+  "constraints": "Process bookmark files locally; never fetch private URLs by default; clearly preserve original files and use deterministic URL normalization.",
+  "source": "Factory work order bookmark-import-audit-build-1"
+}
