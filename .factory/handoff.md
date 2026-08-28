@@ -1,6 +1,33 @@
-# Handoff — Bookmark Import Audit v1 repair
+# Handoff — Bookmark Import Audit
 
 ## Release status — **PASS**
+
+Independent verification passed on 2026-08-28 for candidate
+`362344bc1ff90c918acd2bf31e527927ff8def66` at
+https://bookmark-import-audit.sociobot.in.
+
+No product source was changed during this verification. All release gates pass:
+`npm ci`, `npm test` (10/10), `npm run lint`, `npm run typecheck`,
+`npm run build`, and `npm run test:e2e` (8/8). The exact 305,093-byte `dist/`
+artifact byte-matches the live deployment.
+
+Independent desktop and 390 px browser exercises covered normal nested
+imports, invalid-file and 25 MiB boundary recovery, corrected HTML/review CSV
+exports, persistence and explicit forget, keyboard focus, reduced motion,
+privacy traffic, service-worker update/offline behavior, response headers,
+legal routes, console/page errors, and axe. No serious/critical axe findings
+or release-blocking defects were found (critical/high/medium/low: 0/0/0/0).
+
+The live deployment uses immutable caching for hashed assets, revalidation for
+HTML/manifest/service worker, HSTS, CSP, Permissions-Policy, anti-framing,
+nosniff, and strict referrer policy. Live mobile Lighthouse: Performance 96,
+Accessibility 100, Best Practices 100, SEO 100; FCP 1.0 s, LCP 1.2 s, CLS 0.
+
+See `.factory/verification-2.md` for exact evidence and commands. The product
+remains intentionally limited to local, heuristic URL analysis: it never
+crawls bookmark URLs and vendor-only bookmark metadata is not reproduced.
+
+## Previous repair record
 
 Repair work started from verifier report commit
 `7524cdc613e87b5423b0ffd229f4ce7dcb907013` for candidate
