@@ -1,66 +1,39 @@
-# Handoff — polish 2 complete
+# Handoff — adversarial review 3
 
 ## Outcome
 
-All findings in `.factory/review-1.md` and `.factory/review-2.md` are closed.
-The repair is `7b3d9a8` plus this handoff/build-stamp commit. It preserves the
-mid-century migration-console identity and the static offline PWA deployment.
+Review 3 is complete with verdict **FAIL**. No product code was changed. The
+full report is `.factory/review-3.md`.
 
-## What changed
+The live product, demo isolation, offline behavior, routing, metadata, visual
+identity, and automated gates are functional. The review found a desktop
+first-screen blocker, undersized mobile targets, incomplete claim assertions,
+unlisted README/landing claims, one silent drop error, and copy issues.
 
-- Demo exit now deletes the separate `demo:bookmark-import-audit` audit before
-  real state loads. Reopening `/demo` always seeds the shipped sample.
-- Static app routes are emitted as real documents (`/demo`, `/privacy`,
-  `/terms`) instead of using a catch-all success fallback. Unknown routes now
-  return HTTP 404 with a metadata-complete, CSP-clean product 404 page.
-- The 404 styling is same-origin `404.css`, so the restrictive CSP emits no
-  inline-style console error.
-- File-limit errors now consistently say **25 MiB**. The claim registry and
-  regression tests cover demo exit, 404 behavior, and exact error text.
+## Verification performed
 
-## Verification
+Clean clone: `/tmp/bookmark-review3-clean.mFZOjb` at
+`6bf88d61f013398de2e731a5807f7ee739d43f07`.
 
-Fresh clone used: `/tmp/bookmark-import-audit-clean.Hdno1r` at `7b3d9a8`.
+- All 11 commands in `.factory/claims.json` passed.
+- `npm test` passed 11/11.
+- `npm run lint`, `npm run typecheck`, and `npm run build` passed.
+- `npm run test:e2e` passed 24/24.
+- Build size: JavaScript 24.73 kB / 8.93 kB gzip; CSS 18.82 kB / 5.23 kB gzip.
+- Local built JS/CSS SHA-256 hashes match the deployed assets.
+- Live `/` and `/demo` passed `/opt/fleet/lib/verify-url.sh`.
+- Live Axe checks found zero violations on root, demo, privacy, terms, and 404.
+- Live route crawl returned 200 for all intended links and 404 for an unknown
+  route.
+- Live demo reset, exit discard, real-data isolation, offline reload, and
+  same-origin-only traffic were exercised independently.
 
-- `npm ci` — pass (142 packages, 0 vulnerabilities).
-- Every command in `.factory/claims.json` — pass: 11 claim commands.
-- `npm run lint` — pass.
-- `npm run typecheck` — pass.
-- `npm run build` — pass; root `dist/index.html`, real route documents, and
-  service worker emitted. Initial JS: 24.73 kB / 8.93 kB gzip; CSS: 18.82 kB /
-  5.23 kB gzip.
-- `npm run test:e2e` — pass: 24 checks across desktop Chromium and 390 px
-  Chromium, including offline reload, downloads, route focus, 404, and axe.
+Evidence screenshots and verifier output are under
+`/tmp/bia-review3-evidence/` and `/tmp/bia-review3-*-root.png`.
 
-Deployment: `399a918f-5bdc-4ca6-a9ba-73f485b7dc16` through
-`/opt/fleet/lib/deploy-static.sh bookmark-import-audit dist`.
+## Known gaps and next steps
 
-Live cold checks after deployment:
-
-- `https://bookmark-import-audit.sociobot.in/` and `/demo` passed
-  `verify-url.sh`: title, lang, one H1, main, alt text, labelled buttons, and
-  zero console errors.
-- `https://bookmark-import-audit.sociobot.in/does-not-exist` returned HTTP 404,
-  title `Page not found — Bookmark Import Audit`, and no CSP console error.
-- A fresh live context uploaded `demo-only.html`, chose Start for real, then
-  reopened `/demo`: the edited file was absent and the shipped sample returned.
-- Live axe at 390 px reported zero serious/critical violations on `/`, `/demo`,
-  and `/does-not-exist`.
-
-Evidence: `/tmp/bookmark-polish-2/final-root/verify.json`,
-`/tmp/bookmark-polish-2/final-demo/verify.json`,
-`/tmp/bookmark-polish-2/live-demo-exit.png`, and
-`/tmp/bookmark-polish-2/final-not-found.png`.
-
-## Run
-
-```sh
-npm ci
-npm test
-npm run lint
-npm run typecheck
-npm run build
-npm run test:e2e
-```
-
-There are no known gaps or deferred findings.
+Resolve F-3-1 through F-3-20 in `.factory/review-3.md`, then rerun the complete
+review. The highest-priority work is keeping the desktop sample action above the
+fold, providing 44 px demo controls, and making every public claim both listed
+and fully asserted by its tagged test.
