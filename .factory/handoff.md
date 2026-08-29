@@ -1,111 +1,35 @@
-# Handoff — independent verification 4
-
-## Current verdict
-
-**PASS** for candidate `cd800ee2902fdffce7bfafc90a178d78082e6616` at
-<https://bookmark-import-audit.sociobot.in/>. This supersedes the historic
-repair-3 handoff below. No product code was modified by this verifier.
-
-## Current verification evidence
-
-From a clean checkout after `npm ci`, all 16 exact claim commands passed.
-Independent full checks passed: `npm run lint`; `npm test` (16/16);
-`npm run test:e2e` (38/38); `npm run build`; and the same live-URL Playwright
-suite (38/38). The final production output is 9.70 kB gzip JavaScript and
-5.63 kB gzip CSS.
-
-The public PWA survived an offline demo reload and exported a CSV. Remote axe
-found zero serious/critical violations; the factory URL verifier found correct
-title/lang/main/alt semantics and no console errors. Privacy inspection found
-same-origin-only traffic, no bookmark URL fetches, no third-party resources,
-and no cookies. All 23 publicly served build artifacts matched the live
-deployment byte-for-byte; deployment headers and route behavior match the host
-configuration.
-
-Full evidence, first-read result, manual normal/invalid/recovery exercise, and
-the severity ledger are in `.factory/verification-4.md`.
-
-## Current defects and known gaps
-
-- Critical: none.
-- High: none.
-- Medium: none.
-- Low: none.
-
-# Historic repair 3 handoff
+# Handoff — adversarial review 7
 
 ## Outcome
 
-Repaired every release blocker recorded in
-`.factory/verification-3.md` for candidate
-`9469d87650f9375e815e2858fdd2cc493fd2d612` while preserving the local-first
-bookmark audit, demo, export, route, and accessibility behavior.
+Completed an independent, no-code-change review of commit
+`7a2252b7f3f37ef2b74ac8030f955aaca105748a` and the deployed product. The
+verdict is **FAIL** with two findings documented in `.factory/review-7.md`:
 
-## Repairs
+- blocking regression F-1-41/F-1-47/F-3-19, round-7 index F-7-1: the
+  empty-export error uses the unexplained term “Netscape HTML”;
+- minor F-7-2: the canonical `/offline.html` route is missing from the sitemap.
 
-1. **Reliable 25 MiB claim.** The file-limit browser test now creates an
-   isolated temporary file for exactly 25 MiB and one for 25 MiB plus one byte.
-   Each Playwright project selects a path instead of serializing a 25 MiB
-   in-memory buffer over the test protocol. The picker, drop-target rejection,
-   and recovery checks remain in the same registered claim. The original exact
-   command was run first after `npm ci`; it passed in this worker, confirming
-   the verifier's reported timeout was intermittent rather than changing the
-   documented unsafe transport. The replacement removes that transport.
-2. **Content-versioned PWA updates.** `vite.config.ts` now hashes each
-   precached path and its bytes when writing `sw.js`. Stable public artwork moved
-   to `/media/` and icons now use the default revalidation policy. Only Vite's
-   hashed `/assets/*` output is immutable for one year.
-3. **Changed-asset update proof.** Added the registered
-   `pwa-asset-update` claim. It copies the production build to an isolated
-   server, installs the worker, changes the same-named public image, regenerates
-   the worker, verifies the visible update prompt, installs it, and compares the
-   controlled page's fetched SHA-256 to the changed bytes.
-4. **First-screen offline fact.** The landing facts now state “Works offline
-   after the first visit,” backed by the existing offline-reload claim.
-5. **Release identity.** Build ID and manifest launch query are now
-   `1.0.0-r7` / `pwa-r7`.
+## Verification performed
 
-## Verification
+- Cold first reads at 390 × 844 and 1440 × 900 in fresh Chromium contexts.
+- One-click live demo, first-viewport population, reset/exit, storage isolation,
+  request inventory, offline reload, and exports.
+- All 16 exact claim commands from a clean clone.
+- Clean-clone `npm test` (16/16), lint, typecheck, build, and Playwright
+  (38/38).
+- Deployed Playwright suite (38/38), including axe, keyboard, focus/history,
+  target-size, link, privacy, offline, and 404 checks.
+- Factory URL verifier on root, demo, and offline pages with no console errors.
+- Route/metadata crawl, response-header checks, and byte comparison of all 23
+  publicly served build files against local `dist` (23/23 matched).
+- Full landing/README copy inventory and independent verification of every
+  finding from reviews 1–6 and their polish records.
 
-Executed from a clean dependency install with Node 22 and Playwright 1.58.2:
+## Remaining work
 
-```text
-npm ci                                                    PASS — 142 packages, 0 vulnerabilities
-npm run typecheck                                         PASS
-npm run lint                                              PASS
-npm run build                                             PASS — dist/ created
-npm test                                                  PASS — 16/16
-npm run test:e2e -- --grep @claim:file-size-limit         PASS — desktop + 390 px
-npm run test:e2e -- --grep @claim:pwa-asset-update        PASS — desktop + 390 px
-npm run test:e2e                                          PASS — 38/38 desktop + 390 px
-all 16 exact commands in .factory/claims.json             PASS
-```
+1. Rewrite the empty-export recovery sentence and add its end-to-end test.
+2. Add `/offline.html` to `public/sitemap.xml` and the exact build-output route
+   assertion.
 
-The full browser suite includes the product flow, desktop/390 px responsive
-checks, keyboard flow, reduced motion, route semantics, zero serious/critical
-axe findings, same-origin-only privacy inventory, no cookies, offline reload
-and export, designed HTTP 404, response-policy configuration, and the PWA
-update lifecycle. The static product has 27.36 kB JavaScript (9.70 kB gzip) and
-21.24 kB CSS (5.63 kB gzip), within the defined budgets.
-
-## Deployment and live verification
-
-Repair commit `bd02ee2a66e1436a33c348532c222066d1a1aa3c` was pushed to `main`
-and deployed with the factory static deployment configuration. Azure deployment
-`6c7daae6-9218-4b25-9ffd-203f3ae4fc59` completed successfully to
-<https://bookmark-import-audit.sociobot.in/>.
-
-The live page serves the new `/media/social-preview.jpg`, the stable media
-response revalidates (`public, max-age=0, must-revalidate`), and the hashed
-script remains immutable for one year. A SHA-256 identity probe compared all 23
-deployable `dist` files to their live URLs: **23/23 byte-identical**. The full
-external suite also passed:
-
-```sh
-PLAYWRIGHT_BASE_URL=https://bookmark-import-audit.sociobot.in npm run test:e2e
-# PASS — 38/38 across desktop and 390 px
-```
-
-## Known gaps
-
-None.
+No product source was modified during this review.
