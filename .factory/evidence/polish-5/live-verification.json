@@ -1,0 +1,50 @@
+{
+  "commit": "4960a9262521bb14e245508f16b847c128bb9218",
+  "deploymentId": "91e5d8ff-1eef-46d7-90be-2634738686fc",
+  "url": "https://bookmark-import-audit.sociobot.in",
+  "cleanClone": "/tmp/bookmark-polish5-final-clean.KYxtU5",
+  "cleanCloneClaims": "15/15 exact .factory/claims.json commands passed",
+  "cleanCloneQuality": "lint, typecheck, build, and 36/36 Playwright tests passed",
+  "livePlaywright": "36/36 passed using PLAYWRIGHT_BASE_URL",
+  "liveRoutes": {
+    "/": 200,
+    "/demo": 200,
+    "/privacy": 200,
+    "/terms": 200,
+    "/does-not-exist": 404
+  },
+  "rootColdCheck": {
+    "loadMs": 745,
+    "title": "Bookmark Import Audit — check bookmark imports",
+    "lang": "en",
+    "h1": 1,
+    "main": true,
+    "missingImageAlt": 0,
+    "unnamedButtons": 0,
+    "consoleErrors": 0
+  },
+  "demoColdCheck": {
+    "loadMs": 558,
+    "title": "Demo — Bookmark Import Audit",
+    "lang": "en",
+    "h1": 1,
+    "main": true,
+    "missingImageAlt": 0,
+    "unnamedButtons": 0,
+    "consoleErrors": 0
+  },
+  "lighthouse": {
+    "performance": 98,
+    "accessibility": 100,
+    "bestPractices": 100,
+    "seo": 100,
+    "fcp": "1.0 s",
+    "lcp": "1.2 s",
+    "tbt": "170 ms",
+    "cls": 0
+  },
+  "screenshots": {
+    "localMobile": ".factory/evidence/polish-5/mobile-header-390-local.png",
+    "liveMobile": ".factory/evidence/polish-5/mobile-header-390-live-final.png"
+  }
+}
