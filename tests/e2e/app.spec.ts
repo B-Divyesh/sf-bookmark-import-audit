@@ -191,10 +191,11 @@ test('@claim:local-processing never requests a bookmark URL or third-party host'
   const requests: string[] = [];
   page.on('request', (request) => requests.push(request.url()));
   await auditDemo(page);
+  const appOrigin = new URL(page.url()).origin;
   const pending = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Export corrected HTML' }).click();
   await pending;
-  expect(requests.every((url) => new URL(url).origin === 'http://127.0.0.1:4173')).toBe(true);
+  expect(requests.every((url) => new URL(url).origin === appOrigin)).toBe(true);
   expect(requests.join('\n')).not.toMatch(/reading\.example\.test|docs\.example\.test|redirect\.example\.test|notes\.example\.test/);
 });
 
@@ -202,6 +203,7 @@ test('@claim:privacy-inventory has no analytics, remote scripts, remote fonts, o
   const requests: string[] = [];
   page.on('request', (request) => requests.push(request.url()));
   await auditDemo(page);
+  const appOrigin = new URL(page.url()).origin;
   await page.getByRole('button', { name: 'Reset demo' }).click();
   await expect(page.getByText('sample-bookmark-library.html')).toBeVisible();
   for (const name of ['Export corrected HTML', 'Export review CSV']) {
@@ -220,7 +222,7 @@ test('@claim:privacy-inventory has no analytics, remote scripts, remote fonts, o
     cookie: document.cookie
   }));
   const allUrls = [...requests, ...inventory.resources.map(({ name }) => name), ...inventory.scripts, ...inventory.styles];
-  expect(allUrls.every((url) => new URL(url).origin === 'http://127.0.0.1:4173')).toBe(true);
+  expect(allUrls.every((url) => new URL(url).origin === appOrigin)).toBe(true);
   const paths = allUrls.map((url) => new URL(url).pathname);
   expect(paths.every((path) => path === '/' || path === '/sw.js' || path === '/manifest.webmanifest' || path.startsWith('/assets/') || path.startsWith('/icons/'))).toBe(true);
   expect(paths.join('\n')).not.toMatch(/\/(?:analytics|collect|beacon|telemetry|tracker|tracking|pixel)(?:[/.?_-]|$)/i);
@@ -370,7 +372,7 @@ test('@claim:designed-404 returns a metadata-complete, CSP-clean HTTP 404 with a
   await expect(page.locator('footer')).toHaveCount(1);
   await expect(page.getByRole('link', { name: 'Go to the audit' })).toHaveAttribute('href', '/');
   for (const route of ['/', '/privacy', '/terms']) expect((await request.get(route)).status()).toBe(200);
-  expect(errors.filter((message) => !/Failed to load resource:.*404 \(Not Found\)/.test(message))).toEqual([]);
+  expect(errors.filter((message) => !/Failed to load resource:.*status of 404\b/.test(message))).toEqual([]);
 });
 
 test('every mobile interactive target is at least 44 by 44 CSS pixels', async ({ page }) => {
@@ -407,6 +409,7 @@ test('keyboard, reduced motion, console, links, and accessibility pass on every 
   expect(['0s', '0.00001s', '1e-05s']).toContain(reduced);
 
   const discovered = new Set<string>();
+  const appOrigin = new URL(page.url()).origin;
   for (const route of ['/', '/demo', '/privacy', '/terms', '/offline.html', '/does-not-exist']) {
     errors.length = 0;
     await page.goto(route);
@@ -414,10 +417,10 @@ test('keyboard, reduced motion, console, links, and accessibility pass on every 
     expect(results.violations.filter((item) => ['serious', 'critical'].includes(item.impact ?? ''))).toEqual([]);
     await expect(page.locator('main')).toHaveCount(1);
     await expect(page.locator('h1')).toHaveCount(1);
-    expect(errors.filter((message) => !/Failed to load resource:.*404 \(Not Found\)/.test(message)), `${route} emitted console errors`).toEqual([]);
+    expect(errors.filter((message) => !/Failed to load resource:.*status of 404\b/.test(message)), `${route} emitted console errors`).toEqual([]);
     for (const href of await page.locator('a[href]').evaluateAll((links) => links.map((link) => (link as HTMLAnchorElement).href))) {
       const url = new URL(href);
-      if (url.origin === 'http://127.0.0.1:4173' && !url.hash) discovered.add(url.pathname);
+      if (url.origin === appOrigin && !url.hash) discovered.add(url.pathname);
     }
   }
   for (const href of discovered) expect((await request.get(href)).status(), href).toBe(200);
