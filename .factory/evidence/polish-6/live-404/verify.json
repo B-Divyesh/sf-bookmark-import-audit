@@ -1,0 +1,14 @@
+{
+  "url": "https://bookmark-import-audit.sociobot.in/404",
+  "loadMs": 938,
+  "errors": [],
+  "a11y": {
+    "title": "Page not found — Bookmark Import Audit",
+    "lang": "en",
+    "h1": 1,
+    "main": true,
+    "imgsMissingAlt": 0,
+    "buttonsUnlabeled": 0,
+    "textLength": 283
+  }
+}

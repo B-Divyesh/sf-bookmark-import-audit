@@ -1,0 +1,28 @@
+{
+  "checked_at": "2026-08-29",
+  "deployment_id": "7224e977-8506-42a5-8e5f-b79f4fa55ee6",
+  "implementation_commit": "3f71e14ee2de8424ad3571e87ffbd6d3e2906989",
+  "viewport": "390x844 cold browser contexts",
+  "routes": {
+    "/": { "status": 200, "title": "Bookmark Import Audit — check bookmark imports", "build": "1.0.0-r6" },
+    "/?demo=1": { "status": 200, "title": "Demo — Bookmark Import Audit", "build": "1.0.0-r6" },
+    "/privacy": { "status": 200, "title": "Privacy — Bookmark Import Audit", "build": "1.0.0-r6" },
+    "/terms": { "status": 200, "title": "Terms — Bookmark Import Audit", "build": "1.0.0-r6" },
+    "/404": { "status": 200, "title": "Page not found — Bookmark Import Audit", "build": "1.0.0-r6" },
+    "/offline.html": { "status": 200, "title": "Offline — Bookmark Import Audit", "build": "1.0.0-r6" },
+    "/round-6-missing": { "status": 404, "title": "Page not found — Bookmark Import Audit", "build": "1.0.0-r6" }
+  },
+  "assertions": {
+    "each_route_has_description_canonical_open_graph_twitter_icons_and_manifest": true,
+    "each_route_has_one_h1_main_header_and_footer": true,
+    "each_route_links_privacy_and_terms": true,
+    "each_route_has_no_horizontal_overflow_at_390px": true,
+    "console_errors_excluding_the_expected_missing_page_404": []
+  },
+  "artifact_hashes_match_live": {
+    "javascript": "96e0d26911dad38a9b262001530a4ef5a7fe10647ba1f37cfb81dc806af8a0a5",
+    "css": "ac66a9f8c9c5373fe7f4155a6db4e724ecb097b763ed3ee16c6dfc4f799dc026",
+    "offline_html": "060a8c901e5648c9e190a3b4150e254d108dc9a68c18e6574f53fedb45742958",
+    "not_found_html": "14b12dcb81772b26d976b4d85dfcd146d737f5491252ceba8ccdfdadf5addab7"
+  }
+}
