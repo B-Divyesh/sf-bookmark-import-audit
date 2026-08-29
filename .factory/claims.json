@@ -1,13 +1,100 @@
 [
-  {"id":"demo-isolation","claim":"Demo sample data is stored separately from saved audits and can be reset.","where":"/demo banner; .factory/demo.md","test":"npm run test:e2e -- --grep @claim:demo-isolation","sandbox":"fresh browser context; save an ordinary audit, reset demo, and return to ordinary storage"},
-  {"id":"demo-exit-discard","claim":"Leaving demo discards edited demo data and restores the shipped sample next time.","where":"/demo banner; .factory/demo.md","test":"npm run test:e2e -- --grep @claim:demo-exit-discard","sandbox":"fresh browser context; replace demo data, start for real, then reopen /demo"},
-  {"id":"audit-categories","claim":"The audit finds folders that may merge, duplicate links, URL variants, and missing titles or malformed URLs.","where":"landing audit list; README","test":"npm run test:e2e -- --grep @claim:audit-categories","sandbox":"/demo shipped sample"},
-  {"id":"csv-export","claim":"Exports a review CSV with an actionable row for each displayed issue.","where":"result export button; README","test":"npm run test:e2e -- --grep @claim:csv-export","sandbox":"/demo shipped sample; inspect downloaded CSV"},
-  {"id":"corrected-export","claim":"The corrected export keeps every bookmark URL and full folder path while changing only folder names that may merge and blank titles.","where":"result export panel; README","test":"npm run test:e2e -- --grep @claim:corrected-export","sandbox":"/demo shipped sample; inspect downloaded HTML"},
-  {"id":"local-processing","claim":"Bookmark files are processed in the browser without requesting bookmark URLs or third-party hosts.","where":"landing privacy facts; privacy page; README","test":"npm run test:e2e -- --grep @claim:local-processing","sandbox":"/demo audit and export with complete request log"},
-  {"id":"offline-reload","claim":"Works offline after the first visit.","where":"README","test":"npm run test:e2e -- --grep @claim:offline-reload","sandbox":"/demo first visit, service worker ready, offline reload, CSV export"},
-  {"id":"file-size-limit","claim":"Accepts browser bookmark HTML files up to 25 MiB.","where":"upload guidance","test":"npm run test:e2e -- --grep @claim:file-size-limit","sandbox":"fresh browser context; 25 MiB accepted and 25 MiB plus one byte rejected"},
-  {"id":"real-audit-storage","claim":"Your latest real audit survives a refresh until you choose Forget this audit.","where":"privacy page; README","test":"npm run test:e2e -- --grep @claim:real-audit-storage","sandbox":"fresh browser context; audit, reload, forget"},
-  {"id":"delivery-config","claim":"The build includes a static app configuration with cache and response-security policies.","where":"README deployment","test":"npm test -- -t @claim:delivery-config","sandbox":"read the shipped staticwebapp.config.json"},
-  {"id":"license-metadata","claim":"The source code is available under the MIT License.","where":"README License","test":"npm test -- -t @claim:license-metadata","sandbox":"read the shipped LICENSE file"}
+  {
+    "id": "demo-isolation",
+    "claim": "The one-click sample at ?demo=1 uses separate storage, never replaces a saved audit, and can be reset.",
+    "where": "first-screen sample action; /demo banner; .factory/demo.md",
+    "test": "npm run test:e2e -- --grep @claim:demo-isolation",
+    "sandbox": "fresh browser context; save a real audit, open ?demo=1, verify separate databases, reset, and return to the saved audit"
+  },
+  {
+    "id": "demo-exit-discard",
+    "claim": "Leaving demo discards edited demo data and restores the shipped sample next time.",
+    "where": "/demo banner; .factory/demo.md",
+    "test": "npm run test:e2e -- --grep @claim:demo-exit-discard",
+    "sandbox": "fresh browser context; replace demo data, start for real, then reopen ?demo=1"
+  },
+  {
+    "id": "audit-categories",
+    "claim": "The audit finds folders that may merge, duplicate links, URL variants, and missing titles or malformed URLs.",
+    "where": "landing audit list; README",
+    "test": "npm run test:e2e -- --grep @claim:audit-categories",
+    "sandbox": "?demo=1 shipped sample with each named issue category"
+  },
+  {
+    "id": "csv-export",
+    "claim": "The review CSV includes an actionable row for every displayed issue.",
+    "where": "result export button; README",
+    "test": "npm run test:e2e -- --grep @claim:csv-export",
+    "sandbox": "?demo=1; map displayed finding details to parsed CSV rows and require every suggested action"
+  },
+  {
+    "id": "corrected-export",
+    "claim": "The app downloads a separate corrected copy that keeps every bookmark URL and nesting path while changing only merge-prone folder names and blank titles.",
+    "where": "landing fact; result export panel; README",
+    "test": "npm run test:e2e -- --grep @claim:corrected-export",
+    "sandbox": "?demo=1; parse source and download, then compare every URL, path, folder name, and title"
+  },
+  {
+    "id": "local-processing",
+    "claim": "Bookmark HTML files are processed in the browser without requesting bookmark URLs or third-party hosts.",
+    "where": "landing privacy facts; privacy page; README",
+    "test": "npm run test:e2e -- --grep @claim:local-processing",
+    "sandbox": "?demo=1 audit and export with a complete request log and unique trap hosts"
+  },
+  {
+    "id": "privacy-inventory",
+    "claim": "The app has no analytics, remote scripts, remote fonts, or tracking cookies.",
+    "where": "privacy page; README",
+    "test": "npm run test:e2e -- --grep @claim:privacy-inventory",
+    "sandbox": "complete demo reset and export flow; inspect requests, resource types, scripts, styles, fonts, document.cookie, and context cookies"
+  },
+  {
+    "id": "offline-reload",
+    "claim": "Works offline after the first visit.",
+    "where": "README; offline notice",
+    "test": "npm run test:e2e -- --grep @claim:offline-reload",
+    "sandbox": "?demo=1 first visit, service worker ready, offline reload, retained banner and audit, then CSV export"
+  },
+  {
+    "id": "file-size-limit",
+    "claim": "Accepts bookmark HTML files up to 25 MiB through the picker or drop target.",
+    "where": "upload guidance",
+    "test": "npm run test:e2e -- --grep @claim:file-size-limit",
+    "sandbox": "fresh browser context; accept 25 MiB, reject 25 MiB plus one byte through picker and drop, then recover"
+  },
+  {
+    "id": "real-audit-storage",
+    "claim": "Your latest real audit survives a refresh until you choose Forget this audit.",
+    "where": "privacy page; README",
+    "test": "npm run test:e2e -- --grep @claim:real-audit-storage",
+    "sandbox": "fresh browser context; audit, reload, forget, then reload again"
+  },
+  {
+    "id": "delivery-config",
+    "claim": "The build includes static cache and response-security policies.",
+    "where": "README deployment",
+    "test": "npm test -- -t @claim:delivery-config",
+    "sandbox": "clean build; inspect dist/staticwebapp.config.json plus emitted route and 404 documents"
+  },
+  {
+    "id": "build-output",
+    "claim": "The build creates the documented route, offline, manifest, and deployment files in dist.",
+    "where": "README develop and verify",
+    "test": "npm test -- -t @claim:build-output",
+    "sandbox": "clean build; inventory dist and inspect route-specific static titles and canonical URLs"
+  },
+  {
+    "id": "designed-404",
+    "claim": "Missing URLs show the product-styled page and return HTTP 404.",
+    "where": "README deployment",
+    "test": "npm run test:e2e -- --grep @claim:designed-404",
+    "sandbox": "arbitrary missing URL; assert HTTP 404, metadata, one h1/main, common navigation/footer, home link, legal links, and no CSP violations"
+  },
+  {
+    "id": "license-metadata",
+    "claim": "The source code is available under the MIT License.",
+    "where": "terms page; README License",
+    "test": "npm test -- -t @claim:license-metadata",
+    "sandbox": "read the shipped LICENSE file"
+  }
 ]

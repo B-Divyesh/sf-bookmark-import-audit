@@ -1,7 +1,7 @@
 {
   "name": "Bookmark Import Audit",
   "short_name": "Import Audit",
-  "description": "Inspect browser bookmark exports for lossy import hazards locally.",
+  "description": "Check a bookmark HTML file for folder merges and duplicate links before importing.",
   "id": "/",
   "start_url": "/?source=pwa-v1",
   "scope": "/",

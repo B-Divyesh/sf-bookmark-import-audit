@@ -11,8 +11,8 @@ describe('bookmark parser and audit', () => {
     expect(parsed.bookmarks[0]).toMatchObject({ title: 'A <guide>', url: 'https://example.com?a=1&b=2', folderPath: ['Work & life'] });
   });
 
-  it('rejects files that are not bookmark exports', () => {
-    expect(() => parseBookmarkHtml('<html><p>Hello</p></html>')).toThrow(/Netscape bookmark export/);
+  it('rejects files that are not bookmark HTML files', () => {
+    expect(() => parseBookmarkHtml('<html><p>Hello</p></html>')).toThrow(/bookmark HTML file/);
   });
 
   it('normalizes tracking parameters, fragments, query order, and trailing slashes', () => {

@@ -10,7 +10,7 @@ type StaticWebAppConfig = {
   responseOverrides?: Record<string, { rewrite: string }>;
 };
 
-const configPath = resolve(process.cwd(), 'public/staticwebapp.config.json');
+const configPath = resolve(process.cwd(), 'dist/staticwebapp.config.json');
 const noCache = 'public, max-age=0, must-revalidate';
 const immutable = 'public, max-age=31536000, immutable';
 
@@ -30,6 +30,13 @@ describe('Azure Static Web Apps delivery policy', () => {
     expect(headersByRoute.get('/icons/*')?.['Cache-Control']).toBe(immutable);
     expect(config.navigationFallback).toBeUndefined();
     expect(config.responseOverrides?.['404']).toEqual({ rewrite: '/404.html' });
+    expect(config.globalHeaders['Content-Security-Policy']).toContain("default-src 'self'");
+    expect(config.globalHeaders['Content-Security-Policy']).toContain("connect-src 'self'");
+    expect(config.globalHeaders['Content-Security-Policy']).toContain("frame-ancestors 'none'");
+    expect(config.globalHeaders['Permissions-Policy']).toContain('camera=()');
+    expect(config.globalHeaders['X-Frame-Options']).toBe('DENY');
+    await expect(readFile(resolve(process.cwd(), 'dist/demo/index.html'), 'utf8')).resolves.toContain('<title>Demo — Bookmark Import Audit</title>');
+    await expect(readFile(resolve(process.cwd(), 'dist/404.html'), 'utf8')).resolves.toContain('<title>Page not found — Bookmark Import Audit</title>');
   });
 
   it('never precaches Azure deployment metadata that the host intentionally does not serve', () => {
@@ -48,4 +55,33 @@ describe('Azure Static Web Apps delivery policy', () => {
     expect(globalHeaders['Permissions-Policy']).toContain('camera=()');
     expect(globalHeaders['X-Frame-Options']).toBe('DENY');
   });
+});
+
+it('@claim:build-output creates every required static and offline artifact', async () => {
+  const expectedFiles = [
+    'index.html',
+    'demo/index.html',
+    'privacy/index.html',
+    'terms/index.html',
+    '404.html',
+    '404.css',
+    'offline.html',
+    'sw.js',
+    'manifest.webmanifest',
+    'staticwebapp.config.json'
+  ];
+  await Promise.all(expectedFiles.map(async (file) => {
+    await expect(readFile(resolve(process.cwd(), 'dist', file))).resolves.toBeInstanceOf(Buffer);
+  }));
+
+  const routeTitles = new Map([
+    ['demo/index.html', 'Demo — Bookmark Import Audit'],
+    ['privacy/index.html', 'Privacy — Bookmark Import Audit'],
+    ['terms/index.html', 'Terms — Bookmark Import Audit']
+  ]);
+  await Promise.all([...routeTitles].map(async ([file, title]) => {
+    const html = await readFile(resolve(process.cwd(), 'dist', file), 'utf8');
+    expect(html).toContain(`<title>${title}</title>`);
+    expect(html).toContain(`rel="canonical" href="https://bookmark-import-audit.sociobot.in/${file.split('/')[0]}"`);
+  }));
 });

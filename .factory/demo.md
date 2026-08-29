@@ -1,6 +1,6 @@
 # Demo sandbox
 
-Open `/demo` or `/?demo=1` to load the shipped sample bookmark library. It has
+Open `/?demo=1` (or `/demo`) to load the shipped sample bookmark library. It has
 two `Research` folders, duplicate and variant links, one blank title, and one
 malformed URL.
 

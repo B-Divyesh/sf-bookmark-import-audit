@@ -29,7 +29,7 @@ function attribute(source: string, name: string): string | undefined {
 
 export function parseBookmarkHtml(html: string): { bookmarks: Bookmark[]; folders: Folder[] } {
   if (!/<(?:!DOCTYPE\s+NETSCAPE-Bookmark-file-1|A\b|H3\b)/i.test(html)) {
-    throw new Error('This does not look like a Netscape bookmark export. Choose the HTML file exported by your browser or bookmark manager.');
+    throw new Error('This does not look like a bookmark HTML file. Choose the file exported by your browser or bookmark app.');
   }
 
   const bookmarks: Bookmark[] = [];
@@ -237,7 +237,7 @@ export function correctedBookmarkHtml(document: AuditDocument): string {
     }
     return lines.join('\n');
   };
-  return `<!DOCTYPE NETSCAPE-Bookmark-file-1>\n<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">\n<TITLE>Bookmarks — collision-safe export</TITLE>\n<H1>Bookmarks — collision-safe export</H1>\n<DL><p>\n${render(root, 1)}\n</DL><p>\n`;
+  return `<!DOCTYPE NETSCAPE-Bookmark-file-1>\n<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">\n<TITLE>Bookmarks — corrected export</TITLE>\n<H1>Bookmarks — corrected export</H1>\n<DL><p>\n${render(root, 1)}\n</DL><p>\n`;
 }
 
 function csv(value: string | number): string {
@@ -250,7 +250,7 @@ export function reviewCsv(document: AuditDocument): string {
   document.result.folderCollisions.forEach((collision) => collision.paths.forEach((path) => rows.push([
     'folder_collision', 'high', collision.title, '', path.join(' / '),
     `${collision.paths.length} same-named folders occur under different parents`,
-    `Use the collision-safe name: ${collision.title} — ${path.slice(0, -1).join(' › ') || 'root'}`
+    `Use the exported name: ${collision.title} — ${path.slice(0, -1).join(' › ') || 'root'}`
   ])));
   document.result.duplicateClusters.forEach((cluster) => cluster.bookmarks.forEach((bookmark) => rows.push([
     'duplicate_url', 'medium', bookmark.title || '(missing title)', bookmark.url, bookmark.folderPath.join(' / '),

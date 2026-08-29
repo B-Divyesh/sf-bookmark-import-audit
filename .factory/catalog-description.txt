@@ -1,1 +1,1 @@
-Check browser bookmark exports for folder merges and duplicate links before importing.
+Check a bookmark HTML file for folder merges, duplicate links, and import risks before moving your library.
