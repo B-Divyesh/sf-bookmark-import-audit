@@ -13,7 +13,10 @@ bookmark audit, demo, export, route, and accessibility behavior.
    isolated temporary file for exactly 25 MiB and one for 25 MiB plus one byte.
    Each Playwright project selects a path instead of serializing a 25 MiB
    in-memory buffer over the test protocol. The picker, drop-target rejection,
-   and recovery checks remain in the same registered claim.
+   and recovery checks remain in the same registered claim. The original exact
+   command was run first after `npm ci`; it passed in this worker, confirming
+   the verifier's reported timeout was intermittent rather than changing the
+   documented unsafe transport. The replacement removes that transport.
 2. **Content-versioned PWA updates.** `vite.config.ts` now hashes each
    precached path and its bytes when writing `sw.js`. Stable public artwork moved
    to `/media/` and icons now use the default revalidation policy. Only Vite's
