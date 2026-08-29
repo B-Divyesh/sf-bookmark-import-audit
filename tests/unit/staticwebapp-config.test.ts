@@ -149,6 +149,7 @@ it('@claim:build-output creates every required static and offline artifact', asy
     'https://bookmark-import-audit.sociobot.in/demo',
     'https://bookmark-import-audit.sociobot.in/privacy',
     'https://bookmark-import-audit.sociobot.in/terms',
-    'https://bookmark-import-audit.sociobot.in/404'
+    'https://bookmark-import-audit.sociobot.in/404',
+    'https://bookmark-import-audit.sociobot.in/offline.html'
   ]);
 });

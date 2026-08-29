@@ -75,7 +75,7 @@ export function parseBookmarkHtml(html: string): { bookmarks: Bookmark[]; folder
   }
 
   if (bookmarks.length === 0 && folders.length === 0) {
-    throw new Error('No bookmark folders or links were found. Export bookmarks as Netscape HTML, then try that file.');
+    throw new Error('No bookmark folders or links were found. Export your bookmarks as a bookmark HTML file, then choose that file.');
   }
   return { bookmarks, folders: uniqueFolders(folders) };
 }

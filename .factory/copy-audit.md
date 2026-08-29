@@ -117,6 +117,8 @@ or introduces an unresolved metaphor. Hyphenated terms count as one word.
 | 6 | Export a smaller library before auditing. |
 | 9 | This does not look like a bookmark HTML file. |
 | 10 | Choose the file exported by your browser or bookmark app. |
+| 7 | No bookmark folders or links were found. |
+| 11 | Export your bookmarks as a bookmark HTML file, then choose that file. |
 
 ## Legal routes
 

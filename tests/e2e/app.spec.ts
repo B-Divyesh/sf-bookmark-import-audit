@@ -316,6 +316,16 @@ test('@claim:file-size-limit validates picker and drop files at the 25 MiB bound
   await expect(page.getByText('recovered.html')).toBeVisible();
 });
 
+test('an empty bookmark export explains how to recover with a bookmark HTML file', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('#bookmark-file').setInputFiles({
+    name: 'empty-bookmarks.html',
+    mimeType: 'text/html',
+    buffer: Buffer.from('<!DOCTYPE NETSCAPE-Bookmark-file-1><DL><p></DL><p>')
+  });
+  await expect(page.getByText('No bookmark folders or links were found. Export your bookmarks as a bookmark HTML file, then choose that file.')).toBeVisible();
+});
+
 test('@claim:pwa-asset-update installs a changed-asset worker and serves the changed public asset', async ({ browser }, testInfo) => {
   const site = testInfo.outputPath('pwa-update-site');
   const port = 45_000 + testInfo.workerIndex;
