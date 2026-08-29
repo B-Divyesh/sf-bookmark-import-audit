@@ -1,4 +1,4 @@
-# Copy audit — polish 4
+# Copy audit — polish 5
 
 Visible word tokens were counted after the round-four rewrite. The longest
 sentence is 16 words. No item exceeds 22 words, uses a banned marketing term,
@@ -60,7 +60,7 @@ or introduces an unresolved metaphor. Hyphenated terms count as one word.
 | 9 | Bookmark Import Audit checks bookmark HTML files before import. |
 | 1 | Terms |
 | 4 | Built by Param Factory |
-| 2 | build 1.0.0-r4 |
+| 2 | build 1.0.0-r5 |
 
 ## Demo and result states
 
@@ -161,5 +161,8 @@ images, and icons in the cache description. No banned term appears.
 | Hierarchy | full folder path |
 | Sample mode | demo |
 | Downloaded repair | corrected copy |
+
+The 390 px header keeps the visible “Bookmark Import Audit” wordmark beside the
+instrument mark. It does not reduce the product name to an unexplained acronym.
 
 No copy flags remain.

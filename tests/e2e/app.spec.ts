@@ -399,6 +399,19 @@ test('every mobile interactive target is at least 44 by 44 CSS pixels', async ({
   }
 });
 
+test('the 390px header visibly names Bookmark Import Audit', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  const brand = page.locator('.site-header .brand');
+  await expect(brand).toBeVisible();
+  await expect(brand.locator('span').last()).toHaveText('Bookmark Import Audit');
+  await expect(brand.locator('span').last()).toBeVisible();
+  const box = await brand.boundingBox();
+  expect(box).not.toBeNull();
+  expect(box!.x).toBeGreaterThanOrEqual(0);
+  expect(box!.x + box!.width).toBeLessThanOrEqual(390);
+});
+
 test('keyboard, reduced motion, console, links, and accessibility pass on every route', async ({ page, request }) => {
   const errors: string[] = [];
   page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
