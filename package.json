@@ -9,8 +9,9 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint \"{src,tests}/**/*.ts\" vite.config.ts playwright.config.ts",
     "build": "npm run typecheck && vite build",
-    "preview": "vite preview --host 127.0.0.1",
+    "preview": "node scripts/static-server.mjs",
     "test": "vitest run",
+    "pretest:e2e": "npm run build",
     "test:e2e": "playwright test"
   },
   "devDependencies": {

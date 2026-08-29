@@ -23,7 +23,8 @@ real audit is stored in IndexedDB until you choose **Forget this audit**. There
 are no analytics, remote fonts, third-party scripts, or tracking cookies.
 
 After the first visit, the app works offline. Open `/demo` for a separate sample
-audit. It never reads or writes ordinary saved audits.
+audit. It never reads or writes ordinary saved audits. Starting for real
+discards demo edits.
 
 ## Develop and verify
 
@@ -39,8 +40,8 @@ npm run test:e2e
 ```
 
 Each visitor-facing claim is listed in `.factory/claims.json`. Run every listed
-command from a clean checkout. The build creates `dist/index.html` and the
-static deployment files.
+command from a clean checkout. Browser claim commands build first. The build
+creates `dist/index.html`, static route documents, and deployment files.
 
 ## Deployment
 

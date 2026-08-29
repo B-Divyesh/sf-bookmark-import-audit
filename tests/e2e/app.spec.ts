@@ -24,6 +24,17 @@ test('@claim:demo-isolation keeps a real saved audit separate from resettable de
   await expect(page.getByText('private-bookmarks.html')).toBeVisible();
 });
 
+test('@claim:demo-exit-discard discards edited demo data when starting for real', async ({ page }) => {
+  await page.goto('/demo');
+  await page.locator('#bookmark-file').setInputFiles({ name: 'demo-only.html', mimeType: 'text/html', buffer: Buffer.from('<!DOCTYPE NETSCAPE-Bookmark-file-1><DL><p><DT><A HREF="https://demo-only.example.test">Demo only</A></DL>') });
+  await expect(page.getByText('demo-only.html')).toBeVisible();
+  await page.getByRole('link', { name: 'Start for real' }).click();
+  await expect(page).toHaveURL(/\/$/);
+  await page.goto('/demo');
+  await expect(page.getByText('sample-bookmark-library.html')).toBeVisible();
+  await expect(page.getByText('demo-only.html')).not.toBeVisible();
+});
+
 test('@claim:audit-categories finds each advertised issue category in the shipped sample', async ({ page }) => {
   await auditDemo(page);
   await expect(page.getByRole('heading', { name: 'Folders that may merge' })).toBeVisible();
@@ -85,7 +96,7 @@ test('@claim:file-size-limit accepts 25 MiB and rejects a file one byte larger',
   await expect(page.getByRole('heading', { name: /issues found/i })).toBeVisible();
   await page.goto('/');
   await page.locator('#bookmark-file').setInputFiles({ name: 'too-large.html', mimeType: 'text/html', buffer: Buffer.alloc(25 * 1024 * 1024 + 1, 32) });
-  await expect(page.getByText('That file is over 25 MB.')).toBeVisible();
+  await expect(page.getByText('That file is over 25 MiB. Export a smaller library before auditing.')).toBeVisible();
 });
 
 test('@claim:real-audit-storage survives a refresh and can be forgotten', async ({ page }) => {
@@ -98,7 +109,7 @@ test('@claim:real-audit-storage survives a refresh and can be forgotten', async 
   await expect(page.getByText('Four local checks')).toBeVisible();
 });
 
-test('routes, titles, focus announcements, 404 artifact, and mobile first screen work', async ({ page }) => {
+test('routes, titles, focus announcements, and mobile first screen work', async ({ page }) => {
   await page.goto('/privacy');
   await expect(page).toHaveTitle('Privacy — Bookmark Import Audit');
   await page.getByRole('link', { name: 'Terms' }).click();
@@ -106,13 +117,27 @@ test('routes, titles, focus announcements, 404 artifact, and mobile first screen
   await expect(page.locator('h1')).toBeFocused();
   await page.goBack();
   await expect(page).toHaveTitle('Privacy — Bookmark Import Audit');
-  expect((await page.request.get('/404.html')).status()).toBe(200);
   await page.goto('/demo');
   await expect(page.getByRole('link', { name: 'Try it with sample data' }).first()).toBeVisible();
 });
 
-test('has no serious or critical accessibility violations', async ({ page }) => {
-  await page.goto('/demo');
-  const results = await new AxeBuilder({ page: page as never }).analyze();
-  expect(results.violations.filter((item) => ['serious', 'critical'].includes(item.impact ?? ''))).toEqual([]);
+test('an unknown route returns a CSP-clean HTTP 404 with the common navigation', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
+  const response = await page.goto('/does-not-exist');
+  expect(response?.status()).toBe(404);
+  await expect(page).toHaveTitle('Page not found — Bookmark Import Audit');
+  await expect(page.locator('main')).toHaveCount(1);
+  await expect(page.locator('h1')).toHaveText('That page was not found');
+  await expect(page.locator('meta[name="description"]')).toHaveCount(1);
+  await expect(page.getByRole('link', { name: 'Go to the audit' })).toHaveAttribute('href', '/');
+  expect(errors.filter((message) => /Content Security Policy|inline style|inline script/i.test(message))).toEqual([]);
+});
+
+test('has no serious or critical accessibility violations on demo or 404', async ({ page }) => {
+  for (const route of ['/demo', '/does-not-exist']) {
+    await page.goto(route);
+    const results = await new AxeBuilder({ page: page as never }).analyze();
+    expect(results.violations.filter((item) => ['serious', 'critical'].includes(item.impact ?? ''))).toEqual([]);
+  }
 });

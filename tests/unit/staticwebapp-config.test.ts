@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { isPrecacheAsset } from '../../vite.config';
 
 type StaticWebAppConfig = {
-  navigationFallback: { rewrite: string; exclude: string[] };
+  navigationFallback?: { rewrite: string; exclude: string[] };
   globalHeaders: Record<string, string>;
   routes: Array<{ route: string; headers: Record<string, string> }>;
   responseOverrides?: Record<string, { rewrite: string }>;
@@ -28,8 +28,7 @@ describe('Azure Static Web Apps delivery policy', () => {
     expect(headersByRoute.get('/manifest.webmanifest')?.['Cache-Control']).toBe(noCache);
     expect(headersByRoute.get('/assets/*')?.['Cache-Control']).toBe(immutable);
     expect(headersByRoute.get('/icons/*')?.['Cache-Control']).toBe(immutable);
-    expect(config.navigationFallback).toMatchObject({ rewrite: '/index.html' });
-    expect(config.navigationFallback.exclude).toEqual(expect.arrayContaining(['/assets/*', '/icons/*']));
+    expect(config.navigationFallback).toBeUndefined();
     expect(config.responseOverrides?.['404']).toEqual({ rewrite: '/404.html' });
   });
 

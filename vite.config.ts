@@ -1,5 +1,5 @@
 import { defineConfig, type Plugin } from 'vite';
-import { readdir, readFile, writeFile } from 'node:fs/promises';
+import { copyFile, mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import { join, relative } from 'node:path';
 import { createHash } from 'node:crypto';
 
@@ -24,6 +24,13 @@ function serviceWorker(): Plugin {
     name: 'versioned-service-worker',
     apply: 'build',
     async closeBundle() {
+      // These are real static documents, not host-wide SPA fallbacks. That
+      // keeps the app routes reloadable while unknown paths remain HTTP 404s.
+      await Promise.all(['/demo', '/privacy', '/terms'].map(async (route) => {
+        const destination = `dist${route}`;
+        await mkdir(destination, { recursive: true });
+        await copyFile('dist/index.html', `${destination}/index.html`);
+      }));
       const files = (await filesBelow('dist')).filter(isPrecacheAsset);
       const template = await readFile('src/sw-template.js', 'utf8');
       const version = createHash('sha256').update(files.join('|')).digest('hex').slice(0, 10);
