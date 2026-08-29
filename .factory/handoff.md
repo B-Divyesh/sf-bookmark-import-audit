@@ -1,80 +1,57 @@
-# Handoff — polish 6
+# Handoff — independent verification 3
 
 ## Outcome
 
-All findings from adversarial reviews 1–6 are closed. The release keeps the
-mid-century migration-console identity and the `pwa-offline` artifact class.
-Implementation commit `3f71e14ee2de8424ad3571e87ffbd6d3e2906989` is deployed
-at <https://bookmark-import-audit.sociobot.in> through deployment
-`7224e977-8506-42a5-8e5f-b79f4fa55ee6`.
+**FAIL — do not release candidate
+`9469d87650f9375e815e2858fdd2cc493fd2d612`.**
 
-Round 6 completes the offline page's route metadata and common shell. It also
-generates one `1.0.0-r6` build label for app, offline, and 404 pages from
-`src/release.ts`. The complete cumulative mapping is `.factory/polish-6.md`.
+The live deployment at <https://bookmark-import-audit.sociobot.in/> exactly
+matches all 23 deployable files from the candidate build, but a mandatory claim
+command fails and the PWA can retain stale stable-name assets after an
+asset-only deployment. Full evidence is in `.factory/verification-3.md`.
 
-## Changes
+## Blocking evidence
 
-- Added description, canonical URL, Open Graph and Twitter metadata, favicon,
-  180 px touch icon, and manifest links to `/offline.html`.
-- Added the standard skip link, full product wordmark, site navigation, legal
-  links, factory credit, and build provenance to `/offline.html`.
-- Preserved the navy, ivory, graph-paper, orange-signal instrument-panel style
-  on the offline route at desktop and 390 px widths.
-- Replaced hard-coded app and 404 build labels with one release constant and a
-  build-time substitution for script-free static pages.
-- Extended `@claim:build-output` to inspect metadata on every emitted HTML page,
-  both static shells, app-bundle release provenance, and unresolved placeholders.
-- Extended the browser route test to cover offline metadata, icons, manifest,
-  legal links, common shell, and one build ID on every live route.
-- Updated the catalog line to the 74-character verb-first sentence: “Audit
-  bookmark HTML for duplicate links and folder conflicts before you import.”
+1. `npm run test:e2e -- --grep @claim:file-size-limit` fails under its normal
+   two-project run: the 390 px project times out transferring the 25 MiB fixture.
+   The local full suite repeats it (`35/36`); the live full suite fails the same
+   claim in both projects (`34/36`). The acceptance contract says any failing
+   registered claim command blocks release.
+2. The service-worker cache version hashes filenames only, while stable-name
+   images and icons are cached for one year as immutable. An independent
+   asset-only update probe served new bytes but the controlled PWA retained the
+   old SHA-256 and created no waiting worker.
 
-## Verification
+A lower-severity copy gap remains: the first-screen facts do not mention the
+tested offline capability.
 
-Clean clone: `/tmp/bookmark-polish6-clean.H326YS` at `3f71e14`.
+## What passed
 
-- `npm ci`: PASS — 142 packages, zero vulnerabilities.
-- Every one of the 15 exact commands in `.factory/claims.json`: PASS. Browser
-  claims passed in both desktop Chromium and the 390 px project.
-- `npm test`: PASS — 15/15 unit, registry, artifact, and policy tests.
-- `npm run lint`: PASS.
-- `npm run typecheck`: PASS.
-- `npm run build`: PASS — `dist/` created.
-- `npm run test:e2e`: PASS — 36/36 clean-clone browser tests.
-- Deployed `npm run test:e2e`: PASS — 36/36 against the public origin.
-- URL verifier: PASS on `/`, `/?demo=1`, `/offline.html`, and `/404`; each has
-  one H1/main, `lang=en`, labelled controls, and zero console errors.
-- Axe integration: zero serious or critical issues on home, demo, Privacy,
-  Terms, offline, and the HTTP 404 in both browser projects.
-- Offline claim: PASS after a controlled online visit, offline reload, retained
-  isolated demo, and CSV download.
-- Privacy claims: PASS with same-origin request inventory, trap bookmark hosts,
-  no analytics, no remote script/font, and no cookie.
-- Live cold route audit: every page has its own title and canonical, full social
-  and app metadata, header/footer, legal links, build `1.0.0-r6`, and no 390 px
-  overflow. `/round-6-missing` returns HTTP 404.
-- Live/local SHA-256 values match for JavaScript, CSS, `offline.html`, and
-  `404.html`; see `.factory/evidence/polish-6/live-route-summary.json`.
+- Mandatory cold first-read and one-click populated demo.
+- `npm ci`; `npm test` (15/15); lint; typecheck; exact production build.
+- Fourteen of fifteen exact claim commands.
+- Representative nested input, invalid-input recovery, real file-size boundary,
+  both exports, saved-audit lifecycle, and 10,000-bookmark scale probe.
+- Same-origin-only request log, no cookies, no bookmark URL requests, and
+  expected security/cache response headers.
+- Desktop and 390 px layout, keyboard export path, visible focus, reduced
+  motion, route semantics, and zero serious/critical axe findings.
+- Offline reload/export and the changed-worker update prompt/activation path.
+- Fresh live Lighthouse: 100 Performance, 100 Accessibility, 100 Best
+  Practices, 100 SEO; LCP 1.1 s, TBT 0 ms, CLS 0.
 
-## Performance
+## Required next steps
 
-The production build ships 27.36 kB JavaScript (9.70 kB gzip) and 21.24 kB CSS
-(5.63 kB gzip). Live mobile Lighthouse scored Performance 100, Accessibility
-100, Best Practices 100, and SEO 100. FCP was 0.9 s, LCP 1.1 s, TBT 10 ms, and
-CLS 0. The report is `.factory/evidence/polish-6/lighthouse-live.json`.
+1. Make the exact `file-size-limit` claim command reliable, preferably with
+   temporary file paths or serialized large-payload projects, and rerun every
+   registry command plus both full suites.
+2. Fingerprint stable public assets or version the worker cache from file
+   contents; do not apply immutable caching to updateable stable URLs.
+3. Add a registered PWA-update claim covering a real changed asset, then update
+   the README claim to match what that test proves.
+4. Put the tested offline fact on the first screen.
 
-## Evidence
-
-- `.factory/evidence/polish-6/live-route-summary.json`
-- `.factory/evidence/polish-6/live-root/verify.json`
-- `.factory/evidence/polish-6/live-demo/verify.json`
-- `.factory/evidence/polish-6/live-offline/verify.json`
-- `.factory/evidence/polish-6/live-404/verify.json`
-- `.factory/evidence/polish-6/live-offline/screenshot-mobile.png`
-- `.factory/evidence/polish-6/live-demo/screenshot-mobile.png`
-- `.factory/evidence/polish-6/lighthouse-live.json`
-
-## Run and deploy
+## Reproduction
 
 ```sh
 npm ci
@@ -83,13 +60,9 @@ npm run lint
 npm run typecheck
 npm run build
 npm run test:e2e
+npm run test:e2e -- --grep @claim:file-size-limit
+PLAYWRIGHT_BASE_URL=https://bookmark-import-audit.sociobot.in npm run test:e2e
 ```
 
-Deploy the contents of `dist/` through the static work-order deployment. Do not
-add a navigation fallback; real route documents and the HTTP 404 override are
-part of the tested contract.
-
-## Known gaps and next steps
-
-None. No finding is deferred, and no infrastructure, DNS, billing, or feature
-work remains for this repair round.
+Verification changed only `.factory/verification-3.md` and this handoff; no
+product source or generated runtime artifact was edited.
