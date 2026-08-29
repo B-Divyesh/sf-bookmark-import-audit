@@ -1,32 +1,66 @@
-# Handoff — adversarial review 2
+# Handoff — polish 2 complete
 
 ## Outcome
 
-Review-only work order. No product code was changed. The deployed product fails
-this review; `.factory/review-2.md` records two blocking findings and one minor
-copy finding.
+All findings in `.factory/review-1.md` and `.factory/review-2.md` are closed.
+The repair is `7b3d9a8` plus this handoff/build-stamp commit. It preserves the
+mid-century migration-console identity and the static offline PWA deployment.
 
-## Verification performed
+## What changed
 
-- Fresh live Chromium checks at 390 × 844 and 1440 × 900.
-- Live demo, IndexedDB isolation, Reset, Start-for-real, request logs,
-  metadata, link crawl, headers, and static/missing-404 checks.
-- `npm ci`, `npm test`, `npm run lint`, `npm run typecheck`, and `npm run build`
-  passed.
-- All ten commands in `.factory/claims.json` passed. Route/focus and axe tests
-  also passed when invoked separately.
+- Demo exit now deletes the separate `demo:bookmark-import-audit` audit before
+  real state loads. Reopening `/demo` always seeds the shipped sample.
+- Static app routes are emitted as real documents (`/demo`, `/privacy`,
+  `/terms`) instead of using a catch-all success fallback. Unknown routes now
+  return HTTP 404 with a metadata-complete, CSP-clean product 404 page.
+- The 404 styling is same-origin `404.css`, so the restrictive CSP emits no
+  inline-style console error.
+- File-limit errors now consistently say **25 MiB**. The claim registry and
+  regression tests cover demo exit, 404 behavior, and exact error text.
 
-## Remaining work
+## Verification
 
-1. Discard demo data on exit (or offer an explicit keep choice) and add the
-   specified demo-exit claim test.
-2. Make arbitrary missing URLs return HTTP 404. Repair the static 404 page so
-   CSP permits its external styling, it has no console errors, and it has the
-   required metadata and common skeleton.
-3. Use `25 MiB` consistently in the rejection error and test that copy.
+Fresh clone used: `/tmp/bookmark-import-audit-clean.Hdno1r` at `7b3d9a8`.
 
-## Handoff note
+- `npm ci` — pass (142 packages, 0 vulnerabilities).
+- Every command in `.factory/claims.json` — pass: 11 claim commands.
+- `npm run lint` — pass.
+- `npm run typecheck` — pass.
+- `npm run build` — pass; root `dist/index.html`, real route documents, and
+  service worker emitted. Initial JS: 24.73 kB / 8.93 kB gzip; CSS: 18.82 kB /
+  5.23 kB gzip.
+- `npm run test:e2e` — pass: 24 checks across desktop Chromium and 390 px
+  Chromium, including offline reload, downloads, route focus, 404, and axe.
 
-Only this handoff and `.factory/review-2.md` were modified. The prior polish
-handoff must not be treated as evidence that the two reopened live failures are
-resolved.
+Deployment: `1e0297b7-af94-4ce4-a019-f933cd8a17d7` through
+`/opt/fleet/lib/deploy-static.sh bookmark-import-audit dist`.
+
+Live cold checks after deployment:
+
+- `https://bookmark-import-audit.sociobot.in/` and `/demo` passed
+  `verify-url.sh`: title, lang, one H1, main, alt text, labelled buttons, and
+  zero console errors.
+- `https://bookmark-import-audit.sociobot.in/does-not-exist` returned HTTP 404,
+  title `Page not found — Bookmark Import Audit`, and no CSP console error.
+- A fresh live context uploaded `demo-only.html`, chose Start for real, then
+  reopened `/demo`: the edited file was absent and the shipped sample returned.
+- Live axe at 390 px reported zero serious/critical violations on `/`, `/demo`,
+  and `/does-not-exist`.
+
+Evidence: `/tmp/bookmark-polish-2/live-root/verify.json`,
+`/tmp/bookmark-polish-2/live-demo/verify.json`,
+`/tmp/bookmark-polish-2/live-demo-exit.png`, and
+`/tmp/bookmark-polish-2/live-not-found.png`.
+
+## Run
+
+```sh
+npm ci
+npm test
+npm run lint
+npm run typecheck
+npm run build
+npm run test:e2e
+```
+
+There are no known gaps or deferred findings.

@@ -1,1 +1,1 @@
-Check browser bookmark exports for risky folder merges and duplicate links before importing.
+Check browser bookmark exports for folder merges and duplicate links before importing.
