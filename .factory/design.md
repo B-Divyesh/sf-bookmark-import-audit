@@ -58,6 +58,11 @@ body and control combinations target WCAG AA contrast (4.5:1 or better).
   makes the mutation inspectable.
 - **Export** controls are placed together at the end of the audit and say exactly
   what they produce.
+- **Destination profile** is a compact engraved control beside the gauges. Its
+  plain label and dated fixture note make the change in guidance inspectable.
+- **Demo first view** removes the landing illustration and opens on a dense
+  instrument readout: file, gauges, four categories, and exports. This keeps the
+  established console identity while making the one-click result immediate.
 
 The responsive phone version drops the decorative dial legend, stacks gauges in
 two columns, changes tables into labelled records, and keeps the audit actions in
@@ -113,3 +118,6 @@ the repository.
 reviewed `migration-console` original on 2026-08-28. It contains no added text,
 brands, or third-party material and is used only for Open Graph and Twitter
 previews.
+
+`public/icons/apple-touch-icon.png` is a 180 × 180 resize of the hand-made app
+icon. It was exported locally with ImageMagick on 2026-08-29.

@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "chrome-145",
+  "label": "Chrome 145",
+  "version": "145.0.7632.6",
+  "verifiedOn": "2026-08-29",
+  "sourceRevision": "47e20adcc15fc15f01825aa17e570c8f5492ac0f",
+  "folderRule": "preserves-full-path",
+  "sourceRecords": [
+    {
+      "title": "Personal source",
+      "url": "https://personal.example.test",
+      "folderPath": ["Personal", "Research"]
+    },
+    {
+      "title": "Work source",
+      "url": "https://work.example.test",
+      "folderPath": ["Work", "Research"]
+    }
+  ],
+  "expectedImportedRecords": [
+    {
+      "title": "Personal source",
+      "url": "https://personal.example.test/",
+      "folderPath": ["Personal", "Research"]
+    },
+    {
+      "title": "Work source",
+      "url": "https://work.example.test/",
+      "folderPath": ["Work", "Research"]
+    }
+  ]
+}

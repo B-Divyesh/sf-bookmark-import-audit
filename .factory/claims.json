@@ -15,10 +15,17 @@
   },
   {
     "id": "audit-categories",
-    "claim": "The audit finds folders that may merge, duplicate links, URL variants, and missing titles or malformed URLs.",
+    "claim": "The audit finds same-named folders in different paths, duplicate links, URL variants, and missing titles or malformed URLs.",
     "where": "landing audit list; README",
     "test": "npm run test:e2e -- --grep @claim:audit-categories",
     "sandbox": "?demo=1 shipped sample with each named issue category"
+  },
+  {
+    "id": "destination-profile",
+    "claim": "The Chrome 145 profile uses its bundled versioned fixture to lower folder-path severity and add matching import guidance.",
+    "where": "Importing into selector; result status; export checklist; README",
+    "test": "npm run test:e2e -- --grep @claim:destination-profile",
+    "sandbox": "?demo=1; select Chrome 145, verify the fixture version, lower-risk status, checklist, and CSV severity/action"
   },
   {
     "id": "csv-export",
@@ -29,7 +36,7 @@
   },
   {
     "id": "corrected-export",
-    "claim": "The app downloads a separate corrected copy that keeps every bookmark URL and nesting path while changing only merge-prone folder names and blank titles.",
+    "claim": "The corrected copy keeps every bookmark URL and nesting path. It changes only same-named folder labels from different paths and blank titles.",
     "where": "landing fact; result export panel; README",
     "test": "npm run test:e2e -- --grep @claim:corrected-export",
     "sandbox": "?demo=1; parse source and download, then compare every URL, path, folder name, and title"

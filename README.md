@@ -7,15 +7,19 @@ people moving an old bookmark library.
 ## What it checks
 
 - folders with the same name in different locations;
-- duplicate links with the same address after removing tracking details and the
-  `#` fragment;
+- duplicate links with the same address after removing tracking details and
+  anything after `#`;
 - links that differ by http, https, www, tracking details, or a known redirect
   link; and
 - missing titles and malformed URLs.
 
 The corrected HTML keeps every bookmark URL and full folder path. It changes
-only folder names that may merge and blank titles. The review CSV gives each
-issue a suggested action.
+only same-named folder labels from different paths and blank titles. The review
+CSV gives each issue a suggested action.
+
+The optional **Importing into** selector starts with Generic audit. The Chrome
+145 profile uses a bundled, versioned folder-path fixture and changes only
+folder severity and the matching import checklist.
 
 ## Privacy and offline use
 
@@ -40,21 +44,24 @@ npm run test:e2e
 ```
 
 Run every command in `.factory/claims.json` from a clean checkout. The build
-creates `dist/index.html`, route documents, offline files, and deployment
-configuration.
+creates `dist/index.html`, pages for Demo, Privacy, and Terms, offline files,
+and the host configuration.
 
 ## Deployment
 
 Deploy `dist/` as a static HTTPS app. The build includes
-`staticwebapp.config.json`. Browsers check pages for updates and keep versioned
-app files cached for one year. Security headers are included. Missing URLs show
+`staticwebapp.config.json`. Browsers check pages for updates and cache uniquely
+named scripts, styles, images, and icons for one year. Security headers are
+included. Missing URLs show
 the product’s designed 404 page and return HTTP 404.
 
 ## Project map
 
 - `src/audit.ts` — parser, repeatable URL rules, and export functions
 - `src/storage.ts` — separate real and demo IndexedDB storage
+- `src/importProfiles.ts` — local destination rules and import guidance
 - `src/sw-template.js` — versioned offline cache worker
+- `.factory/import-profiles.md` — destination fixture scope and provenance
 - `.factory/demo.md` — demo isolation and reset behavior
 - `.factory/claims.json` — visitor claims and their tests
 

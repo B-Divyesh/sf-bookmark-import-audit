@@ -35,6 +35,7 @@ export interface AuditDocument {
   version: 1;
   createdAt: string;
   fileName: string;
+  importProfileId?: 'generic' | 'chrome-145';
   bookmarks: Bookmark[];
   folders: Folder[];
   result: AuditResult;

@@ -1,4 +1,5 @@
 import type { AuditDocument, AuditResult, Bookmark, Folder, FolderCollision, UrlCluster } from './types';
+import { importProfile } from './importProfiles';
 
 const TRACKERS = new Set([
   'fbclid', 'gclid', 'dclid', 'msclkid', 'mc_cid', 'mc_eid', 'igshid',
@@ -246,25 +247,28 @@ function csv(value: string | number): string {
 }
 
 export function reviewCsv(document: AuditDocument): string {
+  const profile = importProfile(document.importProfileId);
   const rows: (string | number)[][] = [['kind', 'severity', 'title', 'url', 'folder_path', 'detail', 'suggested_action']];
   document.result.folderCollisions.forEach((collision) => collision.paths.forEach((path) => rows.push([
-    'folder_collision', 'high', collision.title, '', path.join(' / '),
+    'folder_collision', profile.folderCollision.severity, collision.title, '', path.join(' / '),
     `${collision.paths.length} same-named folders occur under different parents`,
-    `Use the exported name: ${collision.title} — ${path.slice(0, -1).join(' › ') || 'root'}`
+    profile.id === 'generic'
+      ? `Use the exported name: ${collision.title} — ${path.slice(0, -1).join(' › ') || 'root'}`
+      : profile.folderCollision.checklist
   ])));
   document.result.duplicateClusters.forEach((cluster) => cluster.bookmarks.forEach((bookmark) => rows.push([
     'duplicate_url', 'medium', bookmark.title || '(missing title)', bookmark.url, bookmark.folderPath.join(' / '),
-    `${cluster.bookmarks.length} bookmarks normalize to ${cluster.key}`, 'Review context before removing; this export preserves every copy'
+    `${cluster.bookmarks.length} bookmarks share an address after tracking details and anything after # are ignored`, 'Review context before removing; this export preserves every copy'
   ])));
   document.result.variantClusters.forEach((cluster) => cluster.bookmarks.forEach((bookmark) => rows.push([
     'url_variant', 'low', bookmark.title || '(missing title)', bookmark.url, bookmark.folderPath.join(' / '),
-    'HTTP/HTTPS, www, or a recognizable redirect wrapper points to the same comparison key', 'Verify the destination manually; no network request was made'
+    'http/https, www, or a known redirect link points to the same address', 'Verify the destination manually; no network request was made'
   ])));
   document.result.missingTitles.forEach((bookmark) => rows.push([
     'missing_title', 'medium', '', bookmark.url, bookmark.folderPath.join(' / '), 'The bookmark has no readable title', 'The corrected HTML uses the hostname as a fallback title'
   ]));
   document.result.invalidUrls.forEach((bookmark) => rows.push([
-    'invalid_url', 'high', bookmark.title || '(missing title)', bookmark.url, bookmark.folderPath.join(' / '), 'The URL could not be parsed', 'Repair or remove it in the destination manager'
+    'invalid_url', 'high', bookmark.title || '(missing title)', bookmark.url, bookmark.folderPath.join(' / '), 'The URL could not be parsed', 'Repair or remove it in the bookmark app'
   ]));
   return `${rows.map((row) => row.map(csv).join(',')).join('\r\n')}\r\n`;
 }

@@ -79,10 +79,35 @@ test('@claim:demo-exit-discard discards edited demo data when starting for real'
 
 test('@claim:audit-categories finds each advertised issue category in the shipped sample', async ({ page }) => {
   await auditDemo(page);
-  await expect(page.getByRole('heading', { name: 'Folders that may merge' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Same-named folders' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Duplicate links' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Likely URL variants' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Missing titles and malformed URLs' })).toBeVisible();
+});
+
+test('@claim:destination-profile applies only its tested folder-path rule and matching export guidance', async ({ page }) => {
+  await auditDemo(page);
+  const selector = page.getByLabel('Importing into');
+  await expect(selector).toHaveValue('generic');
+  await expect(page.getByText('Generic audit does not predict another app’s behavior.')).toBeVisible();
+  await expect(page.getByText('Review paths')).toBeVisible();
+
+  await selector.selectOption('chrome-145');
+  await expect(page.getByText('Local profile 145.0.7632.6 · checked 2026-08-29')).toBeVisible();
+  await expect(page.getByText('Lower risk')).toBeVisible();
+  await expect(page.getByText('The local Chrome 145 fixture keeps these full folder paths separate. Confirm them after import.')).toBeVisible();
+  await expect(page.getByText('Confirm both same-named folder paths after importing into Chrome 145.')).toBeVisible();
+
+  const pending = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export review CSV' }).click();
+  const rows = parseCsv(await downloadText(await pending));
+  const folderRows = rows.filter((row) => row.kind === 'folder_collision');
+  expect(folderRows).toHaveLength(2);
+  expect(folderRows.every((row) => row.severity === 'low')).toBe(true);
+  expect(folderRows.every((row) => row.suggested_action === 'Confirm both same-named folder paths after importing into Chrome 145.')).toBe(true);
+
+  await page.getByRole('button', { name: 'Reset demo' }).click();
+  await expect(page.getByLabel('Importing into')).toHaveValue('generic');
 });
 
 test('@claim:csv-export maps every displayed issue to actionable CSV rows', async ({ page }) => {
@@ -264,6 +289,29 @@ test('the complete primary action is visible at 1440 by 900', async ({ page }) =
   expect(box!.y + box!.height).toBeLessThanOrEqual(900);
 });
 
+test('one click opens a populated demo at the top of the viewport', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('link', { name: 'Try it with sample data' }).first().click();
+  await expect(page).toHaveURL(/\?demo=1$/);
+  await expect(page.locator('.hero')).toHaveCount(0);
+
+  const viewportHeight = await page.evaluate(() => innerHeight);
+  for (const locator of [
+    page.getByText('sample-bookmark-library.html'),
+    page.getByText('8', { exact: true }).first(),
+    page.getByRole('heading', { name: '6 issues found in this sample' }),
+    page.getByText('Same-named folders', { exact: true }).first()
+  ]) {
+    const box = await locator.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box!.y, await locator.textContent() ?? '').toBeLessThan(viewportHeight);
+    expect(box!.y + box!.height).toBeGreaterThan(0);
+  }
+  const exportBox = await page.getByRole('button', { name: 'Export review CSV' }).boundingBox();
+  expect(exportBox).not.toBeNull();
+  expect(exportBox!.y).toBeLessThanOrEqual(viewportHeight + 180);
+});
+
 test('real routes set titles, metadata, history focus, announcements, and working legal links', async ({ page, request }) => {
   const routes = [
     { path: '/', title: 'Bookmark Import Audit — check bookmark imports', canonical: 'https://bookmark-import-audit.sociobot.in/' },
@@ -327,9 +375,9 @@ test('@claim:designed-404 returns a metadata-complete, CSP-clean HTTP 404 with a
 
 test('every mobile interactive target is at least 44 by 44 CSS pixels', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  for (const route of ['/', '/?demo=1', '/privacy', '/terms', '/does-not-exist']) {
+  for (const route of ['/', '/?demo=1', '/privacy', '/terms', '/offline.html', '/does-not-exist']) {
     await page.goto(route);
-    const failures = await page.locator('a[href], button, input').evaluateAll((elements) => elements.flatMap((element) => {
+    const failures = await page.locator('a[href], button, input, select').evaluateAll((elements) => elements.flatMap((element) => {
       if (element instanceof HTMLInputElement && element.type === 'file') return [];
       const style = getComputedStyle(element);
       const rect = element.getBoundingClientRect();
@@ -354,16 +402,18 @@ test('keyboard, reduced motion, console, links, and accessibility pass on every 
   page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
   await page.goto('/');
   await page.keyboard.press('Tab');
-  await expect(page.getByRole('link', { name: 'Skip to audit' })).toBeFocused();
+  await expect(page.getByRole('link', { name: 'Skip to page content' })).toBeFocused();
   const reduced = await page.emulateMedia({ reducedMotion: 'reduce' }).then(() => page.locator('.hero picture').evaluate((element) => getComputedStyle(element).transitionDuration));
   expect(['0s', '0.00001s', '1e-05s']).toContain(reduced);
 
   const discovered = new Set<string>();
-  for (const route of ['/', '/demo', '/privacy', '/terms', '/does-not-exist']) {
+  for (const route of ['/', '/demo', '/privacy', '/terms', '/offline.html', '/does-not-exist']) {
     errors.length = 0;
     await page.goto(route);
     const results = await new AxeBuilder({ page: page as never }).analyze();
     expect(results.violations.filter((item) => ['serious', 'critical'].includes(item.impact ?? ''))).toEqual([]);
+    await expect(page.locator('main')).toHaveCount(1);
+    await expect(page.locator('h1')).toHaveCount(1);
     expect(errors.filter((message) => !/Failed to load resource:.*404 \(Not Found\)/.test(message)), `${route} emitted console errors`).toEqual([]);
     for (const href of await page.locator('a[href]').evaluateAll((links) => links.map((link) => (link as HTMLAnchorElement).href))) {
       const url = new URL(href);

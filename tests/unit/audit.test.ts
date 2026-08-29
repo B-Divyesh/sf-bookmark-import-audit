@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { readFile } from 'node:fs/promises';
 import { auditBookmarks, correctedBookmarkHtml, makeAuditDocument, normalizeUrl, parseBookmarkHtml, reviewCsv } from '../../src/audit';
+import { importProfile } from '../../src/importProfiles';
+import chrome145Fixture from '../../src/fixtures/chrome-145-profile.json' with { type: 'json' };
 import { SAMPLE_BOOKMARKS } from '../../src/sample';
 
 describe('bookmark parser and audit', () => {
@@ -33,6 +35,23 @@ describe('bookmark parser and audit', () => {
   it('does not call non-http bookmarks invalid when URL parsing accepts them', () => {
     const bookmarks = [{ id: '1', title: 'Local', url: 'file:///tmp/note.html', folderPath: [] }];
     expect(auditBookmarks(bookmarks, []).invalidUrls).toEqual([]);
+  });
+
+  it('keeps the versioned Chrome 145 fixture paths distinct', async () => {
+    const source = await readFile('tests/fixtures/import-profiles/chrome-145-input.html', 'utf8');
+    const parsed = parseBookmarkHtml(source);
+    const records = parsed.bookmarks.map(({ title, url, folderPath }) => ({ title, url: new URL(url).toString(), folderPath }));
+    const profile = importProfile(chrome145Fixture.id);
+
+    expect(chrome145Fixture.schemaVersion).toBe(1);
+    expect(chrome145Fixture.sourceRevision).toMatch(/^[a-f0-9]{40}$/);
+    expect(records).toEqual(chrome145Fixture.expectedImportedRecords);
+    expect(new Set(records.map(({ folderPath }) => folderPath.join(' / ')))).toEqual(new Set([
+      'Personal / Research',
+      'Work / Research'
+    ]));
+    expect(profile).toMatchObject({ id: 'chrome-145', version: '145.0.7632.6' });
+    expect(profile.folderCollision).toMatchObject({ severity: 'low', status: 'Lower risk' });
   });
 });
 

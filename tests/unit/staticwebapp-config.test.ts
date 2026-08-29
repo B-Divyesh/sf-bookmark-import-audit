@@ -66,8 +66,10 @@ it('@claim:build-output creates every required static and offline artifact', asy
     '404.html',
     '404.css',
     'offline.html',
+    'offline.css',
     'sw.js',
     'manifest.webmanifest',
+    'icons/apple-touch-icon.png',
     'staticwebapp.config.json'
   ];
   await Promise.all(expectedFiles.map(async (file) => {
@@ -84,4 +86,22 @@ it('@claim:build-output creates every required static and offline artifact', asy
     expect(html).toContain(`<title>${title}</title>`);
     expect(html).toContain(`rel="canonical" href="https://bookmark-import-audit.sociobot.in/${file.split('/')[0]}"`);
   }));
+
+  const [index, notFound, icon, sitemap] = await Promise.all([
+    readFile(resolve(process.cwd(), 'dist/index.html'), 'utf8'),
+    readFile(resolve(process.cwd(), 'dist/404.html'), 'utf8'),
+    readFile(resolve(process.cwd(), 'dist/icons/apple-touch-icon.png')),
+    readFile(resolve(process.cwd(), 'dist/sitemap.xml'), 'utf8')
+  ]);
+  expect(index).toContain('rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png"');
+  expect(notFound).toContain('rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png"');
+  expect(icon.subarray(1, 4).toString()).toBe('PNG');
+  expect([icon.readUInt32BE(16), icon.readUInt32BE(20)]).toEqual([180, 180]);
+  expect([...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1])).toEqual([
+    'https://bookmark-import-audit.sociobot.in/',
+    'https://bookmark-import-audit.sociobot.in/demo',
+    'https://bookmark-import-audit.sociobot.in/privacy',
+    'https://bookmark-import-audit.sociobot.in/terms',
+    'https://bookmark-import-audit.sociobot.in/404'
+  ]);
 });

@@ -1,7 +1,7 @@
 {
   "name": "Bookmark Import Audit",
   "short_name": "Import Audit",
-  "description": "Check a bookmark HTML file for folder merges and duplicate links before importing.",
+  "description": "Check a bookmark HTML file for same-named folders and duplicate links before importing.",
   "id": "/",
   "start_url": "/?source=pwa-v1",
   "scope": "/",
