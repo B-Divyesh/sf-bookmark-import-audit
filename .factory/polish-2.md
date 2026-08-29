@@ -2,7 +2,7 @@
 
 Repair commit: `7b3d9a8` (with the build stamp corrected in the handoff commit).
 Local evidence is in `/tmp/bookmark-polish-2/`; live evidence was taken cold at
-`https://bookmark-import-audit.sociobot.in` after deployment `1e0297b7-af94-4ce4-a019-f933cd8a17d7`.
+`https://bookmark-import-audit.sociobot.in` after deployment `399a918f-5bdc-4ca6-a9ba-73f485b7dc16`.
 
 | Finding | Change made | Evidence |
 | --- | --- | --- |
@@ -56,7 +56,7 @@ Local evidence is in `/tmp/bookmark-polish-2/`; live evidence was taken cold at
 | F-1-48 | Rewrote deployment documentation in short sentences. | `README.md` |
 | F-1-49 | Renamed update action to Install update. | source and e2e regression suite |
 | F-2-1 | Demo → real transitions (including back/forward) delete the demo audit before loading real state. | `@claim:demo-exit-discard`; `/tmp/bookmark-polish-2/live-demo-exit.png`; live `/demo` |
-| F-2-2 | Removed navigation fallback; build emits route files; 404 has external CSS, metadata, icons, common skeleton. | unknown-route test; `/tmp/bookmark-polish-2/live-not-found.png`; live `/does-not-exist` = HTTP 404 |
+| F-2-2 | Removed navigation fallback; build emits route files; 404 has external CSS, metadata, icons, common skeleton. | unknown-route test; `/tmp/bookmark-polish-2/final-not-found.png`; live `/does-not-exist` = HTTP 404 |
 | F-2-3 | Rejection now says 25 MiB exactly. | `@claim:file-size-limit`; live/local upload UI |
 
 ## Final checks

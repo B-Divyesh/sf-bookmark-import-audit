@@ -32,7 +32,7 @@ Fresh clone used: `/tmp/bookmark-import-audit-clean.Hdno1r` at `7b3d9a8`.
 - `npm run test:e2e` — pass: 24 checks across desktop Chromium and 390 px
   Chromium, including offline reload, downloads, route focus, 404, and axe.
 
-Deployment: `1e0297b7-af94-4ce4-a019-f933cd8a17d7` through
+Deployment: `399a918f-5bdc-4ca6-a9ba-73f485b7dc16` through
 `/opt/fleet/lib/deploy-static.sh bookmark-import-audit dist`.
 
 Live cold checks after deployment:
@@ -47,10 +47,10 @@ Live cold checks after deployment:
 - Live axe at 390 px reported zero serious/critical violations on `/`, `/demo`,
   and `/does-not-exist`.
 
-Evidence: `/tmp/bookmark-polish-2/live-root/verify.json`,
-`/tmp/bookmark-polish-2/live-demo/verify.json`,
+Evidence: `/tmp/bookmark-polish-2/final-root/verify.json`,
+`/tmp/bookmark-polish-2/final-demo/verify.json`,
 `/tmp/bookmark-polish-2/live-demo-exit.png`, and
-`/tmp/bookmark-polish-2/live-not-found.png`.
+`/tmp/bookmark-polish-2/final-not-found.png`.
 
 ## Run
 
