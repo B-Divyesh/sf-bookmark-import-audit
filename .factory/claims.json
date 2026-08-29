@@ -70,6 +70,13 @@
     "sandbox": "fresh browser context; accept 25 MiB, reject 25 MiB plus one byte through picker and drop, then recover"
   },
   {
+    "id": "pwa-asset-update",
+    "claim": "A changed public app asset creates an update prompt and is served after installation.",
+    "where": "README deployment; in-app update prompt",
+    "test": "npm run test:e2e -- --grep @claim:pwa-asset-update",
+    "sandbox": "isolated local production build; install the worker, change a same-named public image, regenerate the worker, install the waiting update, and compare the served SHA-256"
+  },
+  {
     "id": "real-audit-storage",
     "claim": "Your latest real audit survives a refresh until you choose Forget this audit.",
     "where": "privacy page; README",

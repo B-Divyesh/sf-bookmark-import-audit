@@ -51,9 +51,9 @@ canonical URL, sharing image, app icons, and manifest.
 ## Deployment
 
 Deploy `dist/` as a static HTTPS app. The build includes
-`staticwebapp.config.json`. Browsers check pages for updates and cache uniquely
-named scripts, styles, images, and icons for one year. Security headers are
-included. Missing URLs show
+`staticwebapp.config.json`. Browsers check for a changed worker and show an
+update prompt when a changed app asset is ready. Hashed scripts and styles cache
+for one year; public images and icons revalidate. Security headers are included. Missing URLs show
 the product’s designed 404 page and return HTTP 404.
 
 ## Project map

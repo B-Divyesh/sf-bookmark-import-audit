@@ -20,6 +20,26 @@ export function isPrecacheAsset(file: string): boolean {
   return file !== '/sw.js' && file !== '/staticwebapp.config.json';
 }
 
+export async function precacheVersion(outputDirectory: string): Promise<{ files: string[]; version: string }> {
+  const files = (await filesBelow(outputDirectory)).filter(isPrecacheAsset).sort();
+  const hash = createHash('sha256');
+  for (const file of files) {
+    hash.update(file);
+    hash.update('\0');
+    hash.update(await readFile(join(outputDirectory, file)));
+    hash.update('\0');
+  }
+  return { files, version: hash.digest('hex').slice(0, 10) };
+}
+
+export async function writeServiceWorker(outputDirectory = 'dist'): Promise<void> {
+  const { files, version } = await precacheVersion(outputDirectory);
+  const template = await readFile('src/sw-template.js', 'utf8');
+  await writeFile(join(outputDirectory, 'sw.js'), template
+    .replace('__CACHE_VERSION__', version)
+    .replace('__PRECACHE_ASSETS__', JSON.stringify(files)));
+}
+
 const routeMetadata = {
   '/demo': {
     title: 'Demo — Bookmark Import Audit',
@@ -66,12 +86,7 @@ function serviceWorker(): Plugin {
         const document = await readFile(path, 'utf8');
         await writeFile(path, document.replaceAll('__BUILD_ID__', BUILD_ID));
       }));
-      const files = (await filesBelow('dist')).filter(isPrecacheAsset);
-      const template = await readFile('src/sw-template.js', 'utf8');
-      const version = createHash('sha256').update(files.join('|')).digest('hex').slice(0, 10);
-      await writeFile('dist/sw.js', template
-        .replace('__CACHE_VERSION__', version)
-        .replace('__PRECACHE_ASSETS__', JSON.stringify(files)));
+      await writeServiceWorker();
     }
   };
 }

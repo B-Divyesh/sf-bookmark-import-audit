@@ -1,7 +1,8 @@
-import { readFile, readdir } from 'node:fs/promises';
-import { resolve } from 'node:path';
+import { mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { isPrecacheAsset } from '../../vite.config';
+import { isPrecacheAsset, precacheVersion } from '../../vite.config';
 import { BUILD_ID } from '../../src/release';
 
 type StaticWebAppConfig = {
@@ -20,7 +21,7 @@ async function readConfig(): Promise<StaticWebAppConfig> {
 }
 
 describe('Azure Static Web Apps delivery policy', () => {
-  it('@claim:delivery-config keeps documents and the service worker revalidated while making static assets immutable', async () => {
+  it('@claim:delivery-config keeps documents, icons, and the service worker revalidated while making hashed build assets immutable', async () => {
     const config = await readConfig();
     const headersByRoute = new Map(config.routes.map((route) => [route.route, route.headers]));
 
@@ -28,7 +29,7 @@ describe('Azure Static Web Apps delivery policy', () => {
     expect(headersByRoute.get('/sw.js')?.['Cache-Control']).toBe(noCache);
     expect(headersByRoute.get('/manifest.webmanifest')?.['Cache-Control']).toBe(noCache);
     expect(headersByRoute.get('/assets/*')?.['Cache-Control']).toBe(immutable);
-    expect(headersByRoute.get('/icons/*')?.['Cache-Control']).toBe(immutable);
+    expect(headersByRoute.has('/icons/*')).toBe(false);
     expect(config.navigationFallback).toBeUndefined();
     expect(config.responseOverrides?.['404']).toEqual({ rewrite: '/404.html' });
     expect(config.globalHeaders['Content-Security-Policy']).toContain("default-src 'self'");
@@ -45,6 +46,21 @@ describe('Azure Static Web Apps delivery policy', () => {
     expect(isPrecacheAsset('/sw.js')).toBe(false);
     expect(isPrecacheAsset('/offline.html')).toBe(true);
     expect(isPrecacheAsset('/assets/index-example.js')).toBe(true);
+    expect(isPrecacheAsset('/media/migration-console-800.webp')).toBe(true);
+  });
+
+  it('changes the service-worker cache version when a same-named public asset changes', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'bia-cache-version-'));
+    try {
+      await writeFile(join(root, 'asset.txt'), 'first bytes');
+      const first = await precacheVersion(root);
+      await writeFile(join(root, 'asset.txt'), 'changed bytes');
+      const second = await precacheVersion(root);
+      expect(second.files).toEqual(first.files);
+      expect(second.version).not.toBe(first.version);
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
   });
 
   it('ships a restrictive same-origin response policy for local bookmark data', async () => {
@@ -71,6 +87,8 @@ it('@claim:build-output creates every required static and offline artifact', asy
     'sw.js',
     'manifest.webmanifest',
     'icons/apple-touch-icon.png',
+    'media/migration-console-800.webp',
+    'media/social-preview.jpg',
     'staticwebapp.config.json'
   ];
   await Promise.all(expectedFiles.map(async (file) => {
@@ -93,11 +111,11 @@ it('@claim:build-output creates every required static and offline artifact', asy
     expect(html).toContain(`rel="canonical" href="${canonical}"`);
     expect(html).toContain(`property="og:title" content="${title}"`);
     expect(html).toMatch(/property="og:description" content="[^"]+"/);
-    expect(html).toContain('property="og:image" content="https://bookmark-import-audit.sociobot.in/assets/social-preview.jpg"');
+    expect(html).toContain('property="og:image" content="https://bookmark-import-audit.sociobot.in/media/social-preview.jpg"');
     expect(html).toContain('name="twitter:card" content="summary_large_image"');
     expect(html).toContain(`name="twitter:title" content="${title}"`);
     expect(html).toMatch(/name="twitter:description" content="[^"]+"/);
-    expect(html).toContain('name="twitter:image" content="https://bookmark-import-audit.sociobot.in/assets/social-preview.jpg"');
+    expect(html).toContain('name="twitter:image" content="https://bookmark-import-audit.sociobot.in/media/social-preview.jpg"');
     expect(html).toContain('rel="icon" href="/icons/icon.svg"');
     expect(html).toContain('rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png"');
     expect(html).toContain('rel="manifest" href="/manifest.webmanifest"');

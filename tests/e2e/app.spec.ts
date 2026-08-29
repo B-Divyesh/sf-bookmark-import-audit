@@ -1,8 +1,54 @@
-import { expect, test, type Download, type Page } from '@playwright/test';
+import { expect, test, type Download, type Page, type TestInfo } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import { spawn, type ChildProcess } from 'node:child_process';
+import { createHash } from 'node:crypto';
+import { once } from 'node:events';
+import { cp, mkdir, open, readFile, rm, writeFile } from 'node:fs/promises';
+import { dirname, resolve } from 'node:path';
 import { makeAuditDocument, parseBookmarkHtml } from '../../src/audit';
 import { SAMPLE_BOOKMARKS } from '../../src/sample';
 import { BUILD_ID } from '../../src/release';
+import { writeServiceWorker } from '../../vite.config';
+
+const MEBIBYTE = 1024 * 1024;
+
+async function bookmarkFixture(testInfo: TestInfo, name: string, size: number): Promise<string> {
+  const file = testInfo.outputPath(name);
+  await mkdir(dirname(file), { recursive: true });
+  const handle = await open(file, 'w');
+  try {
+    await handle.write('<!DOCTYPE NETSCAPE-Bookmark-file-1><DL><p><DT><A HREF="https://size.example.test">Sized</A>');
+    await handle.truncate(size);
+  } finally {
+    await handle.close();
+  }
+  return file;
+}
+
+async function startStaticServer(root: string, port: number): Promise<ChildProcess> {
+  const server = spawn(process.execPath, [resolve('scripts/static-server.mjs')], {
+    cwd: process.cwd(),
+    env: { ...process.env, STATIC_ROOT: root, STATIC_PORT: String(port) },
+    stdio: ['ignore', 'pipe', 'pipe']
+  });
+  await new Promise<void>((ready, failed) => {
+    server.stdout!.once('data', () => ready());
+    server.once('error', failed);
+    server.once('exit', (code) => failed(new Error(`Update test server exited early (${code})`)));
+  });
+  return server;
+}
+
+async function stopStaticServer(server: ChildProcess): Promise<void> {
+  if (server.exitCode !== null) return;
+  const exited = once(server, 'exit');
+  server.kill();
+  await exited;
+}
+
+function sha256(bytes: Buffer): string {
+  return createHash('sha256').update(bytes).digest('hex');
+}
 
 async function auditDemo(page: Page): Promise<void> {
   await page.goto('/?demo=1');
@@ -225,7 +271,7 @@ test('@claim:privacy-inventory has no analytics, remote scripts, remote fonts, o
   const allUrls = [...requests, ...inventory.resources.map(({ name }) => name), ...inventory.scripts, ...inventory.styles];
   expect(allUrls.every((url) => new URL(url).origin === appOrigin)).toBe(true);
   const paths = allUrls.map((url) => new URL(url).pathname);
-  expect(paths.every((path) => path === '/' || path === '/sw.js' || path === '/manifest.webmanifest' || path.startsWith('/assets/') || path.startsWith('/icons/'))).toBe(true);
+  expect(paths.every((path) => path === '/' || path === '/sw.js' || path === '/manifest.webmanifest' || path.startsWith('/assets/') || path.startsWith('/icons/') || path.startsWith('/media/'))).toBe(true);
   expect(paths.join('\n')).not.toMatch(/\/(?:analytics|collect|beacon|telemetry|tracker|tracking|pixel)(?:[/.?_-]|$)/i);
   expect(inventory.resources.filter(({ kind }) => kind === 'font')).toEqual([]);
   expect(inventory.declaredFonts).toEqual([]);
@@ -246,14 +292,14 @@ test('@claim:offline-reload reloads the demo and exports while offline after fir
   await expect(await pending).toBeTruthy();
 });
 
-test('@claim:file-size-limit validates picker and drop files at the 25 MiB boundary and recovers', async ({ page }) => {
+test('@claim:file-size-limit validates picker and drop files at the 25 MiB boundary and recovers', async ({ page }, testInfo) => {
+  const boundary = await bookmarkFixture(testInfo, '25m.html', 25 * MEBIBYTE);
+  const tooLarge = await bookmarkFixture(testInfo, '25m-plus-one.html', 25 * MEBIBYTE + 1);
   await page.goto('/');
-  const boundary = Buffer.alloc(25 * 1024 * 1024, 32);
-  boundary.write('<!DOCTYPE NETSCAPE-Bookmark-file-1><DL><p><DT><A HREF="https://size.example.test">Sized</A>');
-  await page.locator('#bookmark-file').setInputFiles({ name: '25m.html', mimeType: 'text/html', buffer: boundary });
+  await page.locator('#bookmark-file').setInputFiles(boundary);
   await expect(page.getByRole('heading', { name: /issues found/i })).toBeVisible();
   await page.goto('/');
-  await page.locator('#bookmark-file').setInputFiles({ name: 'too-large-picker.html', mimeType: 'text/html', buffer: Buffer.alloc(25 * 1024 * 1024 + 1, 32) });
+  await page.locator('#bookmark-file').setInputFiles(tooLarge);
   await expect(page.getByText('That file is over 25 MiB. Export a smaller library before auditing.')).toBeVisible();
   await page.goto('/');
   await page.locator('#drop-zone').evaluate((target, size) => {
@@ -268,6 +314,49 @@ test('@claim:file-size-limit validates picker and drop files at the 25 MiB bound
     target.dispatchEvent(new DragEvent('drop', { bubbles: true, cancelable: true, dataTransfer: transfer }));
   }, '<!DOCTYPE NETSCAPE-Bookmark-file-1><DL><p><DT><A HREF="https://recovered.example.test">Recovered</A></DL>');
   await expect(page.getByText('recovered.html')).toBeVisible();
+});
+
+test('@claim:pwa-asset-update installs a changed-asset worker and serves the changed public asset', async ({ browser }, testInfo) => {
+  const site = testInfo.outputPath('pwa-update-site');
+  const port = 45_000 + testInfo.workerIndex;
+  const asset = resolve(site, 'media/migration-console-800.webp');
+  await cp('dist', site, { recursive: true });
+  const server = await startStaticServer(site, port);
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  try {
+    await page.goto(`http://127.0.0.1:${port}/`);
+    await page.evaluate(() => navigator.serviceWorker.ready);
+    await page.reload();
+    await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
+
+    const changed = Buffer.concat([await readFile(asset), Buffer.from([0])]);
+    await writeFile(asset, changed);
+    await writeServiceWorker(site);
+
+    await page.evaluate(async () => {
+      const registration = await navigator.serviceWorker.getRegistration();
+      await registration?.update();
+    });
+    await expect.poll(() => page.evaluate(async () => Boolean((await navigator.serviceWorker.getRegistration())?.waiting))).toBe(true);
+    await expect(page.getByText('An app update is ready.')).toBeVisible();
+
+    await Promise.all([
+      page.waitForEvent('load'),
+      page.getByRole('button', { name: 'Install update' }).click()
+    ]);
+    await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
+    const observed = await page.evaluate(async () => {
+      const bytes = await (await fetch('/media/migration-console-800.webp')).arrayBuffer();
+      const hash = await crypto.subtle.digest('SHA-256', bytes);
+      return [...new Uint8Array(hash)].map((part) => part.toString(16).padStart(2, '0')).join('');
+    });
+    expect(observed).toBe(sha256(changed));
+  } finally {
+    await context.close();
+    await stopStaticServer(server);
+    await rm(site, { recursive: true, force: true });
+  }
 });
 
 test('@claim:real-audit-storage survives a refresh and can be forgotten', async ({ page }) => {

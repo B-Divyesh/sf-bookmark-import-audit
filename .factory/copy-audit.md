@@ -1,4 +1,4 @@
-# Copy audit — polish 6
+# Copy audit — repair 3
 
 Visible word tokens were counted after the round-four rewrite. The longest
 sentence is 16 words. No item exceeds 22 words, uses a banned marketing term,
@@ -20,9 +20,9 @@ or introduces an unresolved metaphor. Hyphenated terms count as one word.
 | 5 | Audit my bookmark HTML file |
 | 4 | See a completed audit. |
 | 7 | Demo changes never replace your saved audit. |
+| 7 | Works offline after the first visit |
 | 5 | Processes files in your browser |
 | 4 | No bookmark URL requests |
-| 5 | Downloads a separate corrected copy |
 | 14 | An inspection console traces bookmark folders from an input tray to an output tray |
 | 10 | Checks the full folder path, not only a folder name. |
 | 5 | Upload a bookmark HTML file |
@@ -60,7 +60,7 @@ or introduces an unresolved metaphor. Hyphenated terms count as one word.
 | 9 | Bookmark Import Audit checks bookmark HTML files before import. |
 | 1 | Terms |
 | 4 | Built by Param Factory |
-| 2 | build 1.0.0-r6 |
+| 2 | build 1.0.0-r7 |
 
 ## Demo and result states
 
@@ -157,7 +157,7 @@ or introduces an unresolved metaphor. Hyphenated terms count as one word.
 | 4 | Go to the audit |
 | 9 | Bookmark Import Audit checks bookmark HTML files before import. |
 | 4 | Built by Param Factory |
-| 2 | build 1.0.0-r6 |
+| 2 | build 1.0.0-r7 |
 
 The offline metadata description is 16 words. It names the offline action and
 bookmark HTML file directly. Both static pages use the same product, route,
@@ -167,8 +167,9 @@ privacy, terms, factory, and build wording as the app shell.
 
 README sentences and list items are at most 20 words. It uses “anything after
 #”, names the Demo, Privacy, Terms, and offline outputs, and inventories each
-page's metadata. It lists scripts, styles, images, and icons in the cache
-description. No banned term appears.
+page's metadata. It explains the changed-asset update prompt and distinguishes
+one-year hashed build assets from revalidated public images and icons. No banned
+term appears.
 
 ## Terminology
 

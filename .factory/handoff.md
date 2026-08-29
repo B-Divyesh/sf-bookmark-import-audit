@@ -1,68 +1,68 @@
-# Handoff — independent verification 3
+# Handoff — repair 3
 
 ## Outcome
 
-**FAIL — do not release candidate
-`9469d87650f9375e815e2858fdd2cc493fd2d612`.**
+Repaired every release blocker recorded in
+`.factory/verification-3.md` for candidate
+`9469d87650f9375e815e2858fdd2cc493fd2d612` while preserving the local-first
+bookmark audit, demo, export, route, and accessibility behavior.
 
-The live deployment at <https://bookmark-import-audit.sociobot.in/> exactly
-matches all 23 deployable files from the candidate build, but a mandatory claim
-command fails and the PWA can retain stale stable-name assets after an
-asset-only deployment. Full evidence is in `.factory/verification-3.md`.
+## Repairs
 
-## Blocking evidence
+1. **Reliable 25 MiB claim.** The file-limit browser test now creates an
+   isolated temporary file for exactly 25 MiB and one for 25 MiB plus one byte.
+   Each Playwright project selects a path instead of serializing a 25 MiB
+   in-memory buffer over the test protocol. The picker, drop-target rejection,
+   and recovery checks remain in the same registered claim.
+2. **Content-versioned PWA updates.** `vite.config.ts` now hashes each
+   precached path and its bytes when writing `sw.js`. Stable public artwork moved
+   to `/media/` and icons now use the default revalidation policy. Only Vite's
+   hashed `/assets/*` output is immutable for one year.
+3. **Changed-asset update proof.** Added the registered
+   `pwa-asset-update` claim. It copies the production build to an isolated
+   server, installs the worker, changes the same-named public image, regenerates
+   the worker, verifies the visible update prompt, installs it, and compares the
+   controlled page's fetched SHA-256 to the changed bytes.
+4. **First-screen offline fact.** The landing facts now state “Works offline
+   after the first visit,” backed by the existing offline-reload claim.
+5. **Release identity.** Build ID and manifest launch query are now
+   `1.0.0-r7` / `pwa-r7`.
 
-1. `npm run test:e2e -- --grep @claim:file-size-limit` fails under its normal
-   two-project run: the 390 px project times out transferring the 25 MiB fixture.
-   The local full suite repeats it (`35/36`); the live full suite fails the same
-   claim in both projects (`34/36`). The acceptance contract says any failing
-   registered claim command blocks release.
-2. The service-worker cache version hashes filenames only, while stable-name
-   images and icons are cached for one year as immutable. An independent
-   asset-only update probe served new bytes but the controlled PWA retained the
-   old SHA-256 and created no waiting worker.
+## Verification
 
-A lower-severity copy gap remains: the first-screen facts do not mention the
-tested offline capability.
+Executed from a clean dependency install with Node 22 and Playwright 1.58.2:
 
-## What passed
+```text
+npm ci                                                    PASS — 142 packages, 0 vulnerabilities
+npm run typecheck                                         PASS
+npm run lint                                              PASS
+npm run build                                             PASS — dist/ created
+npm test                                                  PASS — 16/16
+npm run test:e2e -- --grep @claim:file-size-limit         PASS — desktop + 390 px
+npm run test:e2e -- --grep @claim:pwa-asset-update        PASS — desktop + 390 px
+npm run test:e2e                                          PASS — 38/38 desktop + 390 px
+all 16 exact commands in .factory/claims.json             PASS
+```
 
-- Mandatory cold first-read and one-click populated demo.
-- `npm ci`; `npm test` (15/15); lint; typecheck; exact production build.
-- Fourteen of fifteen exact claim commands.
-- Representative nested input, invalid-input recovery, real file-size boundary,
-  both exports, saved-audit lifecycle, and 10,000-bookmark scale probe.
-- Same-origin-only request log, no cookies, no bookmark URL requests, and
-  expected security/cache response headers.
-- Desktop and 390 px layout, keyboard export path, visible focus, reduced
-  motion, route semantics, and zero serious/critical axe findings.
-- Offline reload/export and the changed-worker update prompt/activation path.
-- Fresh live Lighthouse: 100 Performance, 100 Accessibility, 100 Best
-  Practices, 100 SEO; LCP 1.1 s, TBT 0 ms, CLS 0.
+The full browser suite includes the product flow, desktop/390 px responsive
+checks, keyboard flow, reduced motion, route semantics, zero serious/critical
+axe findings, same-origin-only privacy inventory, no cookies, offline reload
+and export, designed HTTP 404, response-policy configuration, and the PWA
+update lifecycle. The static product has 27.36 kB JavaScript (9.70 kB gzip) and
+21.24 kB CSS (5.63 kB gzip), within the defined budgets.
 
-## Required next steps
+## Deployment and live verification
 
-1. Make the exact `file-size-limit` claim command reliable, preferably with
-   temporary file paths or serialized large-payload projects, and rerun every
-   registry command plus both full suites.
-2. Fingerprint stable public assets or version the worker cache from file
-   contents; do not apply immutable caching to updateable stable URLs.
-3. Add a registered PWA-update claim covering a real changed asset, then update
-   the README claim to match what that test proves.
-4. Put the tested offline fact on the first screen.
-
-## Reproduction
+The static artifact is `dist/`, with `dist/index.html` at its root. Push the
+repair commit to `main`; the repository's static deployment integration should
+publish it to <https://bookmark-import-audit.sociobot.in/>. After publishing,
+rerun the full suite with:
 
 ```sh
-npm ci
-npm test
-npm run lint
-npm run typecheck
-npm run build
-npm run test:e2e
-npm run test:e2e -- --grep @claim:file-size-limit
 PLAYWRIGHT_BASE_URL=https://bookmark-import-audit.sociobot.in npm run test:e2e
 ```
 
-Verification changed only `.factory/verification-3.md` and this handoff; no
-product source or generated runtime artifact was edited.
+## Known gaps
+
+None. The live suite and identity check are recorded after the deployment
+commit is pushed.

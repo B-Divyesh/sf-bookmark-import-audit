@@ -2,7 +2,8 @@ import { createServer } from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
 import { extname, resolve } from 'node:path';
 
-const root = resolve('dist');
+const root = resolve(process.env.STATIC_ROOT ?? 'dist');
+const port = Number(process.env.STATIC_PORT ?? '4173');
 const config = JSON.parse(await readFile(resolve(root, 'staticwebapp.config.json'), 'utf8'));
 const types = { '.css': 'text/css; charset=utf-8', '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.json': 'application/json', '.svg': 'image/svg+xml', '.webmanifest': 'application/manifest+json', '.webp': 'image/webp', '.jpg': 'image/jpeg', '.png': 'image/png', '.xml': 'application/xml', '.txt': 'text/plain; charset=utf-8' };
 
@@ -31,4 +32,6 @@ createServer(async (request, response) => {
     response.writeHead(status, { ...headersFor(pathname), 'Content-Type': types[extname(file)] ?? 'application/octet-stream' });
     response.end(body);
   } catch { response.writeHead(500).end('Server error'); }
-}).listen(4173, '127.0.0.1');
+}).listen(port, '127.0.0.1', () => {
+  console.log(`Static server listening on ${port}`);
+});

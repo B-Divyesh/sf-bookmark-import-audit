@@ -20,12 +20,6 @@
       }
     },
     {
-      "route": "/icons/*",
-      "headers": {
-        "Cache-Control": "public, max-age=31536000, immutable"
-      }
-    },
-    {
       "route": "/sw.js",
       "headers": {
         "Cache-Control": "public, max-age=0, must-revalidate"
