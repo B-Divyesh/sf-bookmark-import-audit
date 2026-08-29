@@ -53,16 +53,22 @@ update lifecycle. The static product has 27.36 kB JavaScript (9.70 kB gzip) and
 
 ## Deployment and live verification
 
-The static artifact is `dist/`, with `dist/index.html` at its root. Push the
-repair commit to `main`; the repository's static deployment integration should
-publish it to <https://bookmark-import-audit.sociobot.in/>. After publishing,
-rerun the full suite with:
+Repair commit `bd02ee2a66e1436a33c348532c222066d1a1aa3c` was pushed to `main`
+and deployed with the factory static deployment configuration. Azure deployment
+`6c7daae6-9218-4b25-9ffd-203f3ae4fc59` completed successfully to
+<https://bookmark-import-audit.sociobot.in/>.
+
+The live page serves the new `/media/social-preview.jpg`, the stable media
+response revalidates (`public, max-age=0, must-revalidate`), and the hashed
+script remains immutable for one year. A SHA-256 identity probe compared all 23
+deployable `dist` files to their live URLs: **23/23 byte-identical**. The full
+external suite also passed:
 
 ```sh
 PLAYWRIGHT_BASE_URL=https://bookmark-import-audit.sociobot.in npm run test:e2e
+# PASS — 38/38 across desktop and 390 px
 ```
 
 ## Known gaps
 
-None. The live suite and identity check are recorded after the deployment
-commit is pushed.
+None.
