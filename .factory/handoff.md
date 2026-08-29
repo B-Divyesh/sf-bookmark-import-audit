@@ -1,4 +1,38 @@
-# Handoff — repair 3
+# Handoff — independent verification 4
+
+## Current verdict
+
+**PASS** for candidate `cd800ee2902fdffce7bfafc90a178d78082e6616` at
+<https://bookmark-import-audit.sociobot.in/>. This supersedes the historic
+repair-3 handoff below. No product code was modified by this verifier.
+
+## Current verification evidence
+
+From a clean checkout after `npm ci`, all 16 exact claim commands passed.
+Independent full checks passed: `npm run lint`; `npm test` (16/16);
+`npm run test:e2e` (38/38); `npm run build`; and the same live-URL Playwright
+suite (38/38). The final production output is 9.70 kB gzip JavaScript and
+5.63 kB gzip CSS.
+
+The public PWA survived an offline demo reload and exported a CSV. Remote axe
+found zero serious/critical violations; the factory URL verifier found correct
+title/lang/main/alt semantics and no console errors. Privacy inspection found
+same-origin-only traffic, no bookmark URL fetches, no third-party resources,
+and no cookies. All 23 publicly served build artifacts matched the live
+deployment byte-for-byte; deployment headers and route behavior match the host
+configuration.
+
+Full evidence, first-read result, manual normal/invalid/recovery exercise, and
+the severity ledger are in `.factory/verification-4.md`.
+
+## Current defects and known gaps
+
+- Critical: none.
+- High: none.
+- Medium: none.
+- Low: none.
+
+# Historic repair 3 handoff
 
 ## Outcome
 
