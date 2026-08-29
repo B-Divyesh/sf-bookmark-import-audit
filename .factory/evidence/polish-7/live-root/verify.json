@@ -1,0 +1,14 @@
+{
+  "url": "https://bookmark-import-audit.sociobot.in",
+  "loadMs": 737,
+  "errors": [],
+  "a11y": {
+    "title": "Bookmark Import Audit — check bookmark imports",
+    "lang": "en",
+    "h1": 1,
+    "main": true,
+    "imgsMissingAlt": 0,
+    "buttonsUnlabeled": 0,
+    "textLength": 1510
+  }
+}
