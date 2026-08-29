@@ -1,6 +1,7 @@
 import './styles.css';
 import { correctedBookmarkHtml, makeAuditDocument, repairLedger, reviewCsv } from './audit';
 import { IMPORT_PROFILES, importProfile } from './importProfiles';
+import { BUILD_ID } from './release';
 import { SAMPLE_BOOKMARKS } from './sample';
 import { forgetAudit, loadAudit, saveAudit, type StorageScope } from './storage';
 import type { AuditDocument, Bookmark, FolderCollision, UrlCluster } from './types';
@@ -33,7 +34,7 @@ function setMeta(path: string): void {
 function header(active = route()): string {
   return `<header class="site-header"><a class="brand" href="/" data-route aria-label="Bookmark Import Audit home"><span class="brand-mark" aria-hidden="true">BIA</span><span>Bookmark Import Audit</span></a><nav aria-label="Site"><a href="/" data-route ${active === '/' ? 'aria-current="page"' : ''}>Audit</a><a href="/demo" data-route ${active === '/demo' ? 'aria-current="page"' : ''}>Demo</a><a href="/privacy" data-route ${active === '/privacy' ? 'aria-current="page"' : ''}>Privacy</a></nav></header>`;
 }
-function footer(): string { return `<footer><p><strong>Bookmark Import Audit</strong> checks bookmark HTML files before import.</p><div class="footer-meta"><nav aria-label="Legal"><a href="/privacy" data-route>Privacy</a><a href="/terms" data-route>Terms</a></nav><span>Built by Param Factory</span><span>build 1.0.0-r5</span></div></footer>`; }
+function footer(): string { return `<footer><p><strong>Bookmark Import Audit</strong> checks bookmark HTML files before import.</p><div class="footer-meta"><nav aria-label="Legal"><a href="/privacy" data-route>Privacy</a><a href="/terms" data-route>Terms</a></nav><span>Built by Param Factory</span><span>build ${BUILD_ID}</span></div></footer>`; }
 function demoBanner(): string { return scope === 'demo' ? `<aside class="demo-banner" aria-label="Demo controls"><strong>Demo — sample data, nothing is saved</strong><span><button class="link-button" id="reset-demo">Reset demo</button><a href="/" data-route>Start for real</a></span></aside>` : ''; }
 function pathLabel(path: string[]): string { return path.length ? path.map(esc).join('<span aria-hidden="true"> › </span>') : '<em>Top level</em>'; }
 function clusterMarkup(cluster: UrlCluster, type: 'duplicate' | 'variant'): string { return `<li class="finding"><div class="finding-head"><span class="status ${type === 'duplicate' ? 'warn' : 'info'}">${type === 'duplicate' ? 'Review copies' : 'Verify target'}</span><strong>${cluster.bookmarks.length} links</strong></div><code>${esc(cluster.key)}</code><ul class="trace-list">${cluster.bookmarks.map((bookmark) => `<li><span>${esc(bookmark.title || '(missing title)')}</span><small>${pathLabel(bookmark.folderPath)}</small><small class="break">${esc(bookmark.url)}</small></li>`).join('')}</ul></li>`; }

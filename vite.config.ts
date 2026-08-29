@@ -2,6 +2,7 @@ import { defineConfig, type Plugin } from 'vite';
 import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import { join, relative } from 'node:path';
 import { createHash } from 'node:crypto';
+import { BUILD_ID } from './src/release';
 
 async function filesBelow(root: string, dir = root): Promise<string[]> {
   const entries = await readdir(dir, { withFileTypes: true });
@@ -59,6 +60,11 @@ function serviceWorker(): Plugin {
         const destination = `dist${route}`;
         await mkdir(destination, { recursive: true });
         await writeFile(`${destination}/index.html`, routeDocument(indexDocument, route));
+      }));
+      await Promise.all(['404.html', 'offline.html'].map(async (file) => {
+        const path = join('dist', file);
+        const document = await readFile(path, 'utf8');
+        await writeFile(path, document.replaceAll('__BUILD_ID__', BUILD_ID));
       }));
       const files = (await filesBelow('dist')).filter(isPrecacheAsset);
       const template = await readFile('src/sw-template.js', 'utf8');

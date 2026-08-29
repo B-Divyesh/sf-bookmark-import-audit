@@ -1,1 +1,1 @@
-Check bookmark HTML files for duplicate links and folder conflicts before import.
+Audit bookmark HTML for duplicate links and folder conflicts before you import.

@@ -1,7 +1,8 @@
-import { readFile } from 'node:fs/promises';
+import { readFile, readdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { isPrecacheAsset } from '../../vite.config';
+import { BUILD_ID } from '../../src/release';
 
 type StaticWebAppConfig = {
   navigationFallback?: { rewrite: string; exclude: string[] };
@@ -76,25 +77,53 @@ it('@claim:build-output creates every required static and offline artifact', asy
     await expect(readFile(resolve(process.cwd(), 'dist', file))).resolves.toBeInstanceOf(Buffer);
   }));
 
-  const routeTitles = new Map([
-    ['demo/index.html', 'Demo — Bookmark Import Audit'],
-    ['privacy/index.html', 'Privacy — Bookmark Import Audit'],
-    ['terms/index.html', 'Terms — Bookmark Import Audit']
+  const routeMetadata = new Map<string, [string, string]>([
+    ['index.html', ['Bookmark Import Audit — check bookmark imports', 'https://bookmark-import-audit.sociobot.in/']],
+    ['demo/index.html', ['Demo — Bookmark Import Audit', 'https://bookmark-import-audit.sociobot.in/demo']],
+    ['privacy/index.html', ['Privacy — Bookmark Import Audit', 'https://bookmark-import-audit.sociobot.in/privacy']],
+    ['terms/index.html', ['Terms — Bookmark Import Audit', 'https://bookmark-import-audit.sociobot.in/terms']],
+    ['404.html', ['Page not found — Bookmark Import Audit', 'https://bookmark-import-audit.sociobot.in/404']],
+    ['offline.html', ['Offline — Bookmark Import Audit', 'https://bookmark-import-audit.sociobot.in/offline.html']]
   ]);
-  await Promise.all([...routeTitles].map(async ([file, title]) => {
+  await Promise.all([...routeMetadata].map(async ([file, value]) => {
+    const [title, canonical] = value;
     const html = await readFile(resolve(process.cwd(), 'dist', file), 'utf8');
     expect(html).toContain(`<title>${title}</title>`);
-    expect(html).toContain(`rel="canonical" href="https://bookmark-import-audit.sociobot.in/${file.split('/')[0]}"`);
+    expect(html).toMatch(/<meta name="description" content="[^"]+"/);
+    expect(html).toContain(`rel="canonical" href="${canonical}"`);
+    expect(html).toContain(`property="og:title" content="${title}"`);
+    expect(html).toMatch(/property="og:description" content="[^"]+"/);
+    expect(html).toContain('property="og:image" content="https://bookmark-import-audit.sociobot.in/assets/social-preview.jpg"');
+    expect(html).toContain('name="twitter:card" content="summary_large_image"');
+    expect(html).toContain(`name="twitter:title" content="${title}"`);
+    expect(html).toMatch(/name="twitter:description" content="[^"]+"/);
+    expect(html).toContain('name="twitter:image" content="https://bookmark-import-audit.sociobot.in/assets/social-preview.jpg"');
+    expect(html).toContain('rel="icon" href="/icons/icon.svg"');
+    expect(html).toContain('rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png"');
+    expect(html).toContain('rel="manifest" href="/manifest.webmanifest"');
   }));
 
-  const [index, notFound, icon, sitemap] = await Promise.all([
+  const builtScriptName = (await readdir(resolve(process.cwd(), 'dist/assets'))).find((file) => /^index-.*\.js$/.test(file));
+  expect(builtScriptName).toBeDefined();
+  const [index, notFound, offline, icon, sitemap, builtScript] = await Promise.all([
     readFile(resolve(process.cwd(), 'dist/index.html'), 'utf8'),
     readFile(resolve(process.cwd(), 'dist/404.html'), 'utf8'),
+    readFile(resolve(process.cwd(), 'dist/offline.html'), 'utf8'),
     readFile(resolve(process.cwd(), 'dist/icons/apple-touch-icon.png')),
-    readFile(resolve(process.cwd(), 'dist/sitemap.xml'), 'utf8')
+    readFile(resolve(process.cwd(), 'dist/sitemap.xml'), 'utf8'),
+    readFile(resolve(process.cwd(), 'dist/assets', builtScriptName!), 'utf8')
   ]);
-  expect(index).toContain('rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png"');
-  expect(notFound).toContain('rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png"');
+  expect(index).not.toContain('__BUILD_ID__');
+  for (const document of [notFound, offline]) {
+    expect(document).toContain(`build ${BUILD_ID}`);
+    expect(document).not.toContain('__BUILD_ID__');
+    expect(document).toContain('<header class="site-header">');
+    expect(document).toContain('<footer class="site-footer">');
+    expect(document).toContain('<a href="/privacy">Privacy</a>');
+    expect(document).toContain('<a href="/terms">Terms</a>');
+    expect(document).toContain('Built by Param Factory');
+  }
+  expect(builtScript).toContain(BUILD_ID);
   expect(icon.subarray(1, 4).toString()).toBe('PNG');
   expect([icon.readUInt32BE(16), icon.readUInt32BE(20)]).toEqual([180, 180]);
   expect([...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1])).toEqual([

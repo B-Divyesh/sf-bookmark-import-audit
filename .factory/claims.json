@@ -85,10 +85,10 @@
   },
   {
     "id": "build-output",
-    "claim": "The build creates the documented route, offline, manifest, and deployment files in dist.",
-    "where": "README develop and verify",
+    "claim": "The build creates the documented route, offline, metadata, manifest, and deployment files in dist.",
+    "where": "README develop and verify; every emitted HTML page",
     "test": "npm test -- -t @claim:build-output",
-    "sandbox": "clean build; inventory dist and inspect route-specific static titles and canonical URLs"
+    "sandbox": "clean build; inventory dist; inspect every HTML page's metadata and shell; verify one generated build ID"
   },
   {
     "id": "designed-404",

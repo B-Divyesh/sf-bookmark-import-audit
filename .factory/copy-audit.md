@@ -1,4 +1,4 @@
-# Copy audit — polish 5
+# Copy audit — polish 6
 
 Visible word tokens were counted after the round-four rewrite. The longest
 sentence is 16 words. No item exceeds 22 words, uses a banned marketing term,
@@ -60,7 +60,7 @@ or introduces an unresolved metaphor. Hyphenated terms count as one word.
 | 9 | Bookmark Import Audit checks bookmark HTML files before import. |
 | 1 | Terms |
 | 4 | Built by Param Factory |
-| 2 | build 1.0.0-r5 |
+| 2 | build 1.0.0-r6 |
 
 ## Demo and result states
 
@@ -142,11 +142,33 @@ or introduces an unresolved metaphor. Hyphenated terms count as one word.
 | 8 | Source code is available under the MIT License. |
 | 4 | Effective 29 August 2026 |
 
+## Offline and not-found pages
+
+| Words | Copy |
+| --: | --- |
+| 3 | Bookmark audit offline |
+| 3 | You are offline |
+| 12 | If you opened the audit before, return to it and continue locally. |
+| 9 | The app does not need to open bookmark URLs. |
+| 4 | Return to the audit |
+| 1 | 404 |
+| 5 | That page was not found |
+| 11 | Choose the audit home page to check a bookmark HTML file. |
+| 4 | Go to the audit |
+| 9 | Bookmark Import Audit checks bookmark HTML files before import. |
+| 4 | Built by Param Factory |
+| 2 | build 1.0.0-r6 |
+
+The offline metadata description is 16 words. It names the offline action and
+bookmark HTML file directly. Both static pages use the same product, route,
+privacy, terms, factory, and build wording as the app shell.
+
 ## README check
 
 README sentences and list items are at most 20 words. It uses “anything after
-#”, names the Demo, Privacy, and Terms outputs, and lists scripts, styles,
-images, and icons in the cache description. No banned term appears.
+#”, names the Demo, Privacy, Terms, and offline outputs, and inventories each
+page's metadata. It lists scripts, styles, images, and icons in the cache
+description. No banned term appears.
 
 ## Terminology
 
@@ -166,3 +188,6 @@ The 390 px header keeps the visible “Bookmark Import Audit” wordmark beside 
 instrument mark. It does not reduce the product name to an unexplained acronym.
 
 No copy flags remain.
+
+The catalog line starts with “Audit” and is 74 characters, including its final
+period.

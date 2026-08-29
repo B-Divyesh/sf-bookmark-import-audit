@@ -45,7 +45,8 @@ npm run test:e2e
 
 Run every command in `.factory/claims.json` from a clean checkout. The build
 creates `dist/index.html`, pages for Demo, Privacy, and Terms, offline files,
-and the host configuration.
+and the host configuration. Every HTML page includes its title, description,
+canonical URL, sharing image, app icons, and manifest.
 
 ## Deployment
 
@@ -60,6 +61,7 @@ the product’s designed 404 page and return HTTP 404.
 - `src/audit.ts` — parser, repeatable URL rules, and export functions
 - `src/storage.ts` — separate real and demo IndexedDB storage
 - `src/importProfiles.ts` — local destination rules and import guidance
+- `src/release.ts` — one build identifier shared by every page
 - `src/sw-template.js` — versioned offline cache worker
 - `.factory/import-profiles.md` — destination fixture scope and provenance
 - `.factory/demo.md` — demo isolation and reset behavior

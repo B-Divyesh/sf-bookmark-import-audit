@@ -2,6 +2,7 @@ import { expect, test, type Download, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { makeAuditDocument, parseBookmarkHtml } from '../../src/audit';
 import { SAMPLE_BOOKMARKS } from '../../src/sample';
+import { BUILD_ID } from '../../src/release';
 
 async function auditDemo(page: Page): Promise<void> {
   await page.goto('/?demo=1');
@@ -319,7 +320,8 @@ test('real routes set titles, metadata, history focus, announcements, and workin
     { path: '/', title: 'Bookmark Import Audit — check bookmark imports', canonical: 'https://bookmark-import-audit.sociobot.in/' },
     { path: '/demo', title: 'Demo — Bookmark Import Audit', canonical: 'https://bookmark-import-audit.sociobot.in/demo' },
     { path: '/privacy', title: 'Privacy — Bookmark Import Audit', canonical: 'https://bookmark-import-audit.sociobot.in/privacy' },
-    { path: '/terms', title: 'Terms — Bookmark Import Audit', canonical: 'https://bookmark-import-audit.sociobot.in/terms' }
+    { path: '/terms', title: 'Terms — Bookmark Import Audit', canonical: 'https://bookmark-import-audit.sociobot.in/terms' },
+    { path: '/offline.html', title: 'Offline — Bookmark Import Audit', canonical: 'https://bookmark-import-audit.sociobot.in/offline.html' }
   ];
   for (const expected of routes) {
     const response = await page.goto(expected.path);
@@ -332,8 +334,17 @@ test('real routes set titles, metadata, history focus, announcements, and workin
     await expect(page.locator('meta[property="og:title"]')).toHaveAttribute('content', expected.title);
     await expect(page.locator('meta[property="og:image"]')).toHaveAttribute('content', /social-preview\.jpg$/);
     await expect(page.locator('meta[name="twitter:title"]')).toHaveAttribute('content', expected.title);
+    await expect(page.locator('meta[name="twitter:description"]')).toHaveAttribute('content', /\S/);
+    await expect(page.locator('meta[name="twitter:image"]')).toHaveAttribute('content', /social-preview\.jpg$/);
+    await expect(page.locator('link[rel="icon"]')).toHaveAttribute('href', '/icons/icon.svg');
+    await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveAttribute('href', '/icons/apple-touch-icon.png');
+    await expect(page.locator('link[rel="manifest"]')).toHaveAttribute('href', '/manifest.webmanifest');
     await expect(page.locator('header')).toHaveCount(1);
     await expect(page.locator('footer')).toHaveCount(1);
+    await expect(page.locator('footer')).toContainText(`build ${BUILD_ID}`);
+    await expect(page.getByRole('link', { name: 'Bookmark Import Audit home' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Privacy' }).last()).toHaveAttribute('href', '/privacy');
+    await expect(page.getByRole('link', { name: 'Terms' })).toHaveAttribute('href', '/terms');
   }
   for (const route of ['/privacy', '/terms']) expect((await request.get(route)).status()).toBe(200);
 
@@ -370,6 +381,7 @@ test('@claim:designed-404 returns a metadata-complete, CSP-clean HTTP 404 with a
   await expect(page.locator('meta[name="twitter:title"]')).toHaveAttribute('content', 'Page not found — Bookmark Import Audit');
   await expect(page.locator('header nav')).toHaveCount(1);
   await expect(page.locator('footer')).toHaveCount(1);
+  await expect(page.locator('footer')).toContainText(`build ${BUILD_ID}`);
   await expect(page.getByRole('link', { name: 'Go to the audit' })).toHaveAttribute('href', '/');
   for (const route of ['/', '/privacy', '/terms']) expect((await request.get(route)).status()).toBe(200);
   expect(errors.filter((message) => !/Failed to load resource:.*status of 404\b/.test(message))).toEqual([]);
