@@ -1,60 +1,48 @@
-# Handoff — polish 5
+# Handoff — adversarial review 6
 
 ## Outcome
 
-Released the repair at commit
-`4960a9262521bb14e245508f16b847c128bb9218` and deployment
-`91e5d8ff-1eef-46d7-90be-2634738686fc`:
-<https://bookmark-import-audit.sociobot.in>.
+Completed an independent cold-read, copy, demo, claims, sandbox, history,
+structure, accessibility, and missed-leverage review of
+<https://bookmark-import-audit.sociobot.in> at repository commit `0d671083`.
+The verdict is **FAIL** with one reopened blocking finding and two minor
+findings. Product code was not changed.
 
-The 390 px header now keeps the visible **Bookmark Import Audit** wordmark
-beside the BIA instrument mark. Navigation reflows beneath it, so the product
-name remains legible and every navigation target stays at least 44 px. The
-first-screen sample and real-file actions remain visible before scrolling.
+The full report is `.factory/review-6.md`.
 
-## What changed
+## What was checked
 
-- Removed the mobile rule that hid the full wordmark.
-- Added a 390 px rendered-text regression test for the visible product name.
-- Reflowed the mobile header into a readable wordmark row and a navigation row.
-- Updated the footer build label, catalog sentence, and copy audit.
-- Added final local and cold-live screenshots plus a complete finding-to-evidence
-  map in `.factory/polish-5.md`.
+- Fresh 390 × 844 and 1440 × 900 browser contexts before scrolling.
+- Every landing-page and README sentence, heading, fact, label, and action.
+- One-click demo population, reset, exit discard, real-data isolation,
+  same-origin request behavior, downloads, and offline reload.
+- Every command in `.factory/claims.json` from clean clone
+  `/tmp/bookmark-review6-clean.rbdmVB`.
+- Every finding in reviews 1–5 against current live behavior and code.
+- Titles, metadata, H1/main structure, 404 behavior, deep links, history focus,
+  link crawl, mobile targets, console output, reduced motion, and axe results.
 
 ## Verification
 
-- Final clean clone: `/tmp/bookmark-polish5-final-clean.KYxtU5`.
-- `npm ci`, every one of the 15 exact `.factory/claims.json` commands, `npm run
-  lint`, `npm run typecheck`, `npm run build`, and `npm run test:e2e` passed.
-  The full browser run was 36/36 across desktop Chromium and 390 px Chromium.
-- Final deployed `PLAYWRIGHT_BASE_URL=https://bookmark-import-audit.sociobot.in
-  npm run test:e2e`: 36/36 passed. Its axe integration found zero serious or
-  critical findings on root, demo, privacy, terms, offline fallback, and 404.
-- `verify-url.sh` cold checks passed for root and `?demo=1`: one H1, main,
-  `lang=en`, zero missing image alternatives, zero unnamed buttons, and zero
-  console errors. Evidence: `.factory/evidence/polish-5/live-verification.json`.
-- Live routes: `/`, `/demo`, `/privacy`, and `/terms` returned 200; an arbitrary
-  missing path returned 404.
-- Live Lighthouse: Performance 98, Accessibility 100, Best Practices 100, SEO
-  100; FCP 1.0 s, LCP 1.2 s, TBT 170 ms, CLS 0.
-- Final assets: initial JavaScript 27.35 kB uncompressed / 9.69 kB gzip; CSS
-  21.24 kB / 5.63 kB gzip.
+- All 15 exact claim commands: PASS.
+- `npm test`: PASS, 15/15.
+- `npm run lint`: PASS.
+- `npm run typecheck`: PASS.
+- `npm run build`: PASS; `dist/` produced.
+- Deployed Playwright suite: PASS, 36/36.
+- Root and demo `verify-url.sh`: PASS with one H1/main, `lang=en`, complete image
+  alternatives, labelled buttons, and zero console errors.
+- Live JS/CSS hashes match the clean build.
 
-## Run and deploy
+## Remaining work
 
-```sh
-npm ci
-npm test
-npm run lint
-npm run typecheck
-npm run build
-npm run test:e2e
-```
+- Reopened `F-1-35`: add description, canonical, social metadata, favicon,
+  apple-touch icon, and manifest to `/offline.html`; test every emitted page.
+- `F-6-1`: add the common header/footer, Privacy/Terms links, factory credit,
+  and build ID to `/offline.html`.
+- `F-6-2`: replace the 404 footer's stale `build 1.0.0-r4` with the current
+  `build 1.0.0-r5` and generate/assert one build value across all pages.
 
-Deploy `dist/` as the static PWA. The host configuration and PWA artifacts are
-emitted inside it.
-
-## Known gaps
-
-None. Every finding in reviews 1–5 is mapped and verified in
-`.factory/polish-5.md`.
+After those changes, rerun every registered claim command and the complete
+deployed Playwright suite. No infrastructure, DNS, billing, or product source
+was modified in this review.
